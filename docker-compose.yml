@@ -1,0 +1,71 @@
+x-database-variables: &database-variables
+  POSTGRES_DB: knit_to_knit_db
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: postgres
+
+x-app-variables: &app-variables
+  <<: *database-variables
+  POSTGRES_HOST: postgres
+
+services:
+  # PostgreSQL database service
+  postgres:
+    image: postgres
+    ports:
+      - "5432:5432"
+    environment: *database-variables
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # Django website service
+  website:
+    build:
+      context: ./backend  # Build Django from the backend folder
+      dockerfile: Dockerfile  # Dockerfile for Django backend
+    command: python manage.py runserver 0.0.0.0:8000  # Development command
+    volumes:
+      - ./backend:/app
+    environment:
+      <<: *app-variables
+      DJANGO_SETTINGS_MODULE: core.settings
+      DEBUG: 'True'
+    depends_on:
+      - postgres
+      - db_migrate
+    ports:
+      - "8000:8000"
+
+  # Database migration service
+  db_migrate:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: python manage.py migrate
+    volumes:
+      - ./backend:/app  # Ensure the backend folder is mounted for migrations
+    environment: *app-variables
+    depends_on:
+      - postgres
+
+  # Vite React frontend service (depends on postgres)
+  vite:
+    build:
+      context: ./frontend  # Build React from the frontend folder
+      dockerfile: Dockerfile  # Dockerfile for Vite frontend
+      target: developer
+    volumes:
+      - ./frontend:/app  # Mount only the frontend files
+      - /app/node_modules # Prevents overwriting node_modules in the container
+    ports:
+      - "5173:5173"
+      - "8097:8097"
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+    depends_on:
+      - postgres
+    command: npm run dev -- --host
+
+volumes:
+  postgres_data:
+    driver: local

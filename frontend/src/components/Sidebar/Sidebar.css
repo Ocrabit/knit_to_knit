@@ -1,0 +1,136 @@
+/* Root font-size and font family */
+html {
+  font-size: 16px;
+  font-family: "Courier New", Courier, monospace; /* A more handmade, yarn-like font */
+}
+
+/* Sidebar with dynamic width and position */
+#sidebar-wrapper {
+  min-height: 100vh;
+  width: var(--sidebar-width); /* Use dynamic variable for sidebar width */
+  background-color: #d4a373; /* Soft tan, reminiscent of knitting needles or yarn */
+  transition: width 0.3s ease, opacity 0.3s ease; /* Smooth transition for expanding/collapsing */
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
+  border-right: 2px solid #f0c987; /* Stitch-like border */
+  background-image: url('../../assets/icons/sidebar/knitting_texture3.png');
+  background-size: 25rem;
+  position: fixed;
+  left: 0;
+  top: var(--navbar-height); /* Dynamically positioned below navbar */
+  z-index: 900;
+  opacity: 1;
+}
+
+/* Sidebar when open */
+#sidebar-wrapper.open {
+  width: var(--sidebar-width); /* Dynamic width when open */
+  opacity: 1;
+  visibility: visible;
+  position: relative;
+}
+
+/* Sidebar when closed */
+#sidebar-wrapper.closed {
+  width: 50px;
+  opacity: 1;
+  visibility: hidden; /* Fully hide the sidebar */
+}
+
+/* Sidebar heading with a cozy knit feel */
+#sidebar-wrapper .sidebar-heading {
+  padding: 1.5rem 1rem;
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: #fff5e1; /* Warm, creamy white */
+  background-color: #b08968; /* Muted brown, comforting */
+  border-bottom: 2px solid #f0c987;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-align: center;
+  transition: opacity 0.3s ease; /* Smooth fade for text */
+}
+
+/* Sidebar list-group styling */
+#sidebar-wrapper .list-group {
+  width: 100%;
+  padding-top: 1rem;
+  padding-left: 0;
+}
+
+/* Sidebar list-group items (bubble effect) */
+#sidebar-wrapper .list-group-item {
+  background-color: #8b5e3c;
+  color: #fff5e1;
+  font-size: 1rem;
+  padding: 0.75rem 1rem;
+  width: 80%;  /* Smaller than sidebar */
+  margin: 10px auto; /* Center the item within the sidebar */
+  border-radius: 25px; /* Bubble shape */
+  text-align: center;
+  transition: background-color 0.3s ease, color 0.3s ease, opacity 0.3s ease; /* Smooth transitions */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Add a shadow for depth */
+}
+
+/* Hover effect with a yarn-like texture */
+#sidebar-wrapper .list-group-item:hover {
+  background-color: #6b4226; /* Deeper brown for hover */
+  color: #fff5e1;
+  box-shadow: inset 4px 0 0 #6b4226;
+  transform: scale(1.05); /* Slight enlarge on hover for interaction */
+}
+
+/* Active class styles */
+#sidebar-wrapper .list-group-item:active {
+  background-color: #b08968; /* Muted brown for active state */
+  color: #fff5e1;
+  font-weight: bold;
+  box-shadow: inset 4px 0 0 #6b4226;
+  transform: scale(1.05);
+}
+
+/* Hide sidebar text when closed */
+#sidebar-wrapper.closed .sidebar-heading,
+#sidebar-wrapper.closed .list-group-item {
+  opacity: 0; /* Fades out text smoothly */
+  pointer-events: none; /* Make hidden elements non-clickable */
+}
+
+/* Toggle button for the sidebar */
+.toggle-btn {
+  position: fixed;
+  top: calc(var(--navbar-height) + 10px); /* Adjusted position relative to the navbar */
+  left: 10px;
+  width: 40px;
+  height: 40px;
+  background-color: #8b5e3c;
+  color: #fff5e1;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  z-index: 1001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+/* Move the toggle button inside the sidebar when open */
+#sidebar-wrapper.open .toggle-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  left: auto; /* Override left positioning */
+  transform: none;
+}
+
+/* Toggle button hover effect */
+.toggle-btn:hover {
+  background-color: #6b4226;
+}
+
+/* Adjust content width when the sidebar is closed */
+#sidebar-wrapper.closed + .content {
+  margin-left: 60px; /* No margin for closed sidebar */
+  width: 100%; /* Full width when sidebar is closed */
+}

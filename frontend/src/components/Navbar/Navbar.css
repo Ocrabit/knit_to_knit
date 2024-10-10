@@ -1,0 +1,65 @@
+/* Navbar CSS with a knitting-style color scheme */
+nav#navbar-coloring {
+  background-color: #8b5e3c !important; /* Warm brown, like yarn */
+  color: #f7d9c4; /* Soft, wool-like off-white */
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
+  height: var(--navbar-height); /* Constrain height */
+  display: flex;
+  align-items: center; /* Center content vertically */
+}
+
+.navbar-brand {
+  font-weight: bold;
+  font-size: 1.5rem; /* Adjust the font size */
+  color: #f7d9c4 !important; /* Controls Knit-to-Knit color title */
+}
+
+.navbar-container {
+  height: var(--navbar-height); /* Constrain the height of the container */
+}
+
+.navbar-nav {
+  margin-right: 20px; /* Add margin for spacing */
+}
+
+.nav-item {
+  margin-left: 15px;
+}
+
+.nav-link {
+  color: #f7d9c4 !important; /* Set button text color */
+  padding: 10px 20px;
+  border-radius: 5px; /* Rounded corners for buttons */
+  border: 2px solid transparent;
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+.nav-link:hover {
+  border-color: #8b5e3c;
+}
+
+.nav-link.active {
+  font-weight: bold; /* Bold for active link */
+  border-color: #8b5e3c; /* Add a border to active link */
+}
+
+.navbar-nav .nav-item .nav-link {
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow for button */
+  text-transform: uppercase; /* Make buttons look bold and sharp */
+}
+
+.nav-item .dropdown-menu {
+  background-color: #f7f3f0; /* Dropdown background color */
+}
+
+.profile-picture {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%; /* Make the image circular */
+  object-fit: cover;  /* Ensure the image covers the area without stretching */
+  margin-right: 10px;
+  border: 2px solid #ffffff; /* Optional: Add a white border around the profile image */
+}
