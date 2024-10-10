@@ -1,4 +1,4 @@
-// src/pages/Home.js
+// src/pages/Patterns.jsx
 import React from 'react';
 
 const Patterns = () => {

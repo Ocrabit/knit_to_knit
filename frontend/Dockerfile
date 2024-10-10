@@ -14,7 +14,7 @@ RUN npm install
 COPY . .
 
 # Expose the port Vite runs on (default is 5173)
-EXPOSE 5173 8097
+EXPOSE 5173
 
 # Set environment variables for hot-reloading in Docker
 ENV CHOKIDAR_USEPOLLING=true

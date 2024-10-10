@@ -58,7 +58,6 @@ services:
       - /app/node_modules # Prevents overwriting node_modules in the container
     ports:
       - "5173:5173"
-      - "8097:8097"
     environment:
       - NODE_ENV=development
       - CHOKIDAR_USEPOLLING=true
