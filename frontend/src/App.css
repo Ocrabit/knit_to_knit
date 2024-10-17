@@ -1,42 +1,39 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+/* Vars */
+:root {
+  --sidebar-width: 250px; /* Default sidebar width */
+  --navbar-height: 60px; /* Default navbar height */
+  --toolbox-width: 60px; /* Width of the toolbox */
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
+/* App Container */
+html, body, #root{
+  overflow: hidden; /* Prevent scrolling */
+  background-color: black;
 }
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.App {
+  display: flex;
+  flex-direction: column;
+  height: 100vh; /* Ensure it takes the full viewport height */
+  width: 100vw;
+  overflow: hidden; /* Prevent any overflow causing scrolling */
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+/* Wrapper for page content below the navbar */
+#wrapper {
+  padding-top: var(--navbar-height); /* Use the dynamic navbar height */
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+  overflow: hidden;
 }
 
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
+/* Adjust content to account for the dynamic sidebar width */
+.content {
+  flex: 1;
+  margin-left: var(--sidebar-width); /* Dynamically leave space for sidebar */
+  width: calc(100% - var(--sidebar-width)); /* Adjust width based on sidebar */
+  background-color: #f8f9fa;
+  height: 100%; /* Adjust height based on navbar */
+  overflow: hidden; /* Prevent scrolling */
+  transition: margin-left 0.3s ease; /* Smooth transition when sidebar collapses */
 }

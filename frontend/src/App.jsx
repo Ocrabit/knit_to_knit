@@ -34,23 +34,48 @@ class App extends React.Component {
     };
   }
 
+  componentDidMount() {
+    // Check if the user is logged in on page load
+    const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+    const userData = localStorage.getItem("user");
+
+    let user = null;
+    try {
+      user = userData ? JSON.parse(userData) : null; // Safely parse the user data if it exists
+    } catch (error) {
+      console.error("Failed to parse user from local storage.", error);
+      // If parsing fails, ensure that the application state is updated accordingly
+      localStorage.removeItem("user"); // Clear the invalid user data
+    }
+
+    if (isLoggedIn && user) {
+      this.setState({ isLoggedIn, user });
+    }
+  }
+
   // Login Method
   login = async (event) => {
     event.preventDefault();
-    const response = await authService.login(this.state.username, this.state.password);
-    if (response.status === 200) {
+    try {
+      const response = await authService.login(this.state.username, this.state.password);
       this.setState({ isLoggedIn: true, user: response.data.user });
-    } else {
+      console.log(response.data)
+      localStorage.setItem("user", JSON.stringify(response.data.user));
+    } catch (error) {
       this.setState({ error: 'Login failed' });
+      console.error(error);
     }
   };
 
   // Logout Method
   logout = async (event) => {
     event.preventDefault();
-    const response = await authService.logout();
-    if (response.status === 200) {
+    try {
+      await authService.logout();
       this.setState({ isLoggedIn: false, user: null });
+      localStorage.removeItem("user");
+    } catch (error) {
+      console.error("Logout failed", error);
     }
   };
 
@@ -60,70 +85,81 @@ class App extends React.Component {
   };
 
   render() {
-    const { username, password, user, isLoggedIn, error } = this.state;
+    const {username, password, user, isLoggedIn, error} = this.state;
 
-    return (
-        <>
-          {isLoggedIn ? (
-              <HelmetProvider>
+    if (isLoggedIn) {
+      return (
+          <HelmetProvider>
             <Router>
               <Helmet>
                 <title>Knit-to-Knit</title>
               </Helmet>
               <div className="App">
                 <Navbar
-                  isAuthenticated={isLoggedIn}
-                  user={user}
-                  username={username}
-                  logout={this.logout}
+                    isAuthenticated={isLoggedIn}
+                    user={user}
+                    username={username}
+                    logout={this.logout}
                 />
-                <div id="wrapper" style={{ backgroundColor: '#b08968' }}>
-                  <Sidebar />
-                  <div className="content" style={{ backgroundColor: 'white' }}>
+                <div id="wrapper" style={{backgroundColor: '#b08968'}}>
+                  <Sidebar/>
+                  <div className="content" style={{backgroundColor: 'white'}}>
                     <Routes>
-                      <Route path="/about" element={<About />} />
-                      <Route path="/contact" element={<Contact />} />
-                      <Route path="/create" element={<Create />} />
-                      <Route path="/patterns" element={<Patterns />} />
+                      <Route path="/about" element={<About/>}/>
+                      <Route path="/contact" element={<Contact/>}/>
+                      <Route path="/create" element={<Create/>}/>
+                      <Route path="/patterns" element={<Patterns/>}/>
                     </Routes>
                   </div>
                 </div>
               </div>
             </Router>
           </HelmetProvider>
-          ) : (
-              <form
-                  style={{display: "flex", flexDirection: "column"}}
-                  onSubmit={this.login}
-              >
-                {error && <div style={{ color: 'red' }}>{error}</div>}
-                <label htmlFor="username">Username</label>
-                <input
-                    type="text"
-                    name="username"
-                    id="username"
-                    value={username}
-                    onChange={this.handleInputChange}
-                    required
-                />
+      )
+    } else {
+      return (
+          <form
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                backgroundColor: "#242424", // Background color
+                color: "white",             // Text color to be visible on dark background
+                width: "100vw",
+                height: "100vh",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+              onSubmit={this.login}
+          >
+            {error && <div style={{color: 'red'}}>{error}</div>}
+            <label htmlFor="username">Username</label>
+            <input
+                type="text"
+                name="username"
+                id="username"
+                value={username}
+                onChange={this.handleInputChange}
+                required
+                autoComplete="username"
+            />
 
-                <label htmlFor="password">Password</label>
-                <input
-                    type="password"
-                    name="password"
-                    id="password"
-                    value={password}
-                    onChange={this.handleInputChange}
-                    required
-                />
+            <label htmlFor="password">Password</label>
+            <input
+                type="password"
+                name="password"
+                id="password"
+                value={password}
+                onChange={this.handleInputChange}
+                required
+                autoComplete="current-password"
+            />
 
-                <button type="submit" style={{marginTop: "10px"}}>
-                  Login
-                </button>
-              </form>
-          )}
-        </>
-    );
+            <button type="submit" style={{marginTop: "10px"}}>
+              Login
+            </button>
+          </form>
+      )
+    }
   }
 }
 
