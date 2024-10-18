@@ -58,9 +58,7 @@ class App extends React.Component {
     event.preventDefault();
     try {
       const response = await authService.login(this.state.username, this.state.password);
-      this.setState({ isLoggedIn: true, user: response.data.user });
-      console.log(response.data)
-      localStorage.setItem("user", JSON.stringify(response.data.user));
+      this.setState({ isLoggedIn: true, user: response.user });
     } catch (error) {
       this.setState({ error: 'Login failed' });
       console.error(error);

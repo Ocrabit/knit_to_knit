@@ -30,7 +30,6 @@ ALLOWED_HOSTS = ['localhost']
 
 
 # Application definition
-
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -38,15 +37,15 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "authentication",  # our app
     "rest_framework",
     "corsheaders",
-    "rest_framework_simplejwt.token_blacklist",
+    "authentication",  # our app
+    "patterns",
 ]
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'authentication.authenticate.CustomAuthentication',  # our custom JWT authentication class - it is created below
+        'rest_framework_simplejwt.authentication.JWTAuthentication',  # our custom JWT authentication class - it is created below
     )
 }
 
