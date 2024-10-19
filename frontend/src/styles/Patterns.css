@@ -1,0 +1,30 @@
+/* src/styles/Patterns.css */
+.patterns-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  gap: 20px;
+}
+
+.pattern-item {
+  background-color: #f4f4f4;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 200px;
+  padding: 15px;
+  text-align: center;
+}
+
+.pattern-item h2 {
+  font-size: 18px;
+  color: #333;
+}
+
+.pattern-item p {
+  font-size: 14px;
+  color: #666;
+}
+
+.pattern-item small {
+  color: #999;
+}

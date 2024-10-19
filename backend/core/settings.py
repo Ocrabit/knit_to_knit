@@ -10,7 +10,6 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 import os
-from datetime import timedelta
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -30,7 +29,6 @@ ALLOWED_HOSTS = ['localhost']
 
 
 # Application definition
-
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -38,16 +36,19 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "authentication",  # our app
     "rest_framework",
     "corsheaders",
-    "rest_framework_simplejwt.token_blacklist",
+    "authentication",  # our app
+    "patterns",
 ]
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'authentication.authenticate.CustomAuthentication',  # our custom JWT authentication class - it is created below
-    )
+        'rest_framework.authentication.SessionAuthentication',  # Use session authentication
+    ),
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',  # Only allow authenticated users
+    ],
 }
 
 MIDDLEWARE = [
@@ -61,25 +62,29 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SECURE = False  # Activate in production
+SESSION_COOKIE_SAMESITE = 'Lax'  # Enforce CSRF protection, modify based on your needs
+# ^^ Find out more soon
+
+
+# CSRF token settings
+CSRF_COOKIE_HTTPONLY = False
+CSRF_COOKIE_SECURE = False  # Set to true in production
+CSRF_COOKIE_SAMESITE = 'Lax'
+# ^^ Ask Why I need these
+
 CORS_ALLOWED_ORIGINS = [
   "http://localhost:5173",
+    'http://localhost:8000',
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:5173',
+    'http://localhost:8000',
 ]
 
 CORS_ALLOW_CREDENTIALS = True
-
-SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
-    'BLACKLIST_AFTER_ROTATION': True,
-
-    # custom
-    "AUTH_COOKIE": "access_token",  # cookie name
-    "AUTH_COOKIE_DOMAIN": None,  # specifies domain for which the cookie will be sent
-    "AUTH_COOKIE_SECURE": False,  # restricts the transmission of the cookie to only occur over secure (HTTPS) connections.
-    "AUTH_COOKIE_HTTP_ONLY": True,  # prevents client-side js from accessing the cookie
-    "AUTH_COOKIE_PATH": "/",  # URL path where cookie will be sent
-    "AUTH_COOKIE_SAMESITE": "Lax",  # specifies whether the cookie should be sent in cross site requests
-}
 
 ROOT_URLCONF = "core.urls"
 
