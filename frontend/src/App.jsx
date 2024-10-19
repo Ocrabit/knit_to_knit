@@ -35,23 +35,22 @@ class App extends React.Component {
   }
 
   componentDidMount() {
-    // Check if the user is logged in on page load
-    const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
-    const userData = localStorage.getItem("user");
-
-    let user = null;
-    try {
-      user = userData ? JSON.parse(userData) : null; // Safely parse the user data if it exists
-    } catch (error) {
-      console.error("Failed to parse user from local storage.", error);
-      // If parsing fails, ensure that the application state is updated accordingly
-      localStorage.removeItem("user"); // Clear the invalid user data
-    }
-
-    if (isLoggedIn && user) {
-      this.setState({ isLoggedIn, user });
-    }
+    this.restoreSession();
   }
+
+  restoreSession = async () => {
+    try {
+      const user = await authService.checkSession();
+      if (user) {
+        this.setState({ isLoggedIn: true, user });
+      } else {
+        this.setState({ isLoggedIn: false });
+      }
+    } catch (error) {
+      console.error('Error restoring session:', error);
+      this.setState({ isLoggedIn: false });
+    }
+  };
 
   // Login Method
   login = async (event) => {
@@ -71,7 +70,6 @@ class App extends React.Component {
     try {
       await authService.logout();
       this.setState({ isLoggedIn: false, user: null });
-      localStorage.removeItem("user");
     } catch (error) {
       console.error("Logout failed", error);
     }
