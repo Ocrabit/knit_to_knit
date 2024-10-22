@@ -2,7 +2,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
-import { useState } from "react";
 import "./App.css";
 import authService from "./services/auth.service";
 
@@ -20,6 +19,8 @@ import Contact from './pages/Contact.jsx';
 import Create from './pages/Create.jsx';
 import Patterns from './pages/Patterns.jsx';
 import Profile from "./pages/Profile";
+import Dashboard from "./pages/dashboard/Dashboard.jsx";
+import PatternCreate from "./pages/patternCreate/PatternCreate.jsx";
 
 
 class App extends React.Component {
@@ -42,7 +43,7 @@ class App extends React.Component {
     try {
       const user = await authService.checkSession();
       if (user) {
-        this.setState({ isLoggedIn: true, user });
+        this.setState({ isLoggedIn: true, user: user, username: user.username });
       } else {
         this.setState({ isLoggedIn: false });
       }
@@ -101,9 +102,11 @@ class App extends React.Component {
                   <Sidebar/>
                   <div className="content" style={{backgroundColor: 'white'}}>
                     <Routes>
+                      <Route path="/" element={<Dashboard/>}/>
+                      <Route path="/create-pattern" element={<PatternCreate/>}/>
                       <Route path="/about" element={<About/>}/>
                       <Route path="/contact" element={<Contact/>}/>
-                      <Route path="/create" element={<Create/>}/>
+                      <Route path="/create-design" element={<Create/>}/>
                       <Route path="/patterns" element={<Patterns/>}/>
                     </Routes>
                   </div>

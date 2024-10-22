@@ -1,7 +1,6 @@
-// src/pages/Patterns.jsx
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import { axiosInstance } from "../services/auth.service";
-import '../styles/Patterns.css';
+import './dashboard/Dashboard.css';
 
 const Patterns = () => {
     const [patterns, setPatterns] = useState([]);
@@ -10,15 +9,15 @@ const Patterns = () => {
 
     useEffect(() => {
         const fetchPatterns = async () => {
-          try {
-            // Use axiosInstance to ensure the Authorization header is sent
-            const response = await axiosInstance.get('/api/user-patterns/');
-            setPatterns(response.data);
-            setLoading(false);
-          } catch (error) {
-            setError('Error fetching patterns');
-            setLoading(false);
-          }
+            try {
+                // Use axiosInstance to ensure the Authorization header is sent
+                const response = await axiosInstance.get('/api/user-patterns/');
+                setPatterns(response.data);
+                setLoading(false);
+            } catch (error) {
+                setError('Error fetching patterns');
+                setLoading(false);
+            }
         };
 
         fetchPatterns();
@@ -33,15 +32,15 @@ const Patterns = () => {
     }
 
     return (
-        <div>
+        <div className="page-container">
             <h1>Your Patterns</h1>
-            <div className="patterns-list">
+            <div className="card-container">
                 {patterns.map((pattern) => (
-                    <div className="pattern-item" key={pattern.id}>
-                        <h2>{pattern.pattern_name}</h2>
+                    <div className="card" key={pattern.id}>
+                        <h2>{pattern.name}</h2>
                         <p>{pattern.content}</p>
-                        <p><small>Created at: {new Date(pattern.created_on).toLocaleString()}</small></p>
-                        <p><small>Last Edited: {new Date(pattern.edited_on).toLocaleString()}</small></p>
+                        <small>Created at: {new Date(pattern.created_on).toLocaleString()}</small>
+                        <small>Last Edited: {new Date(pattern.edited_on).toLocaleString()}</small>
                     </div>
                 ))}
             </div>

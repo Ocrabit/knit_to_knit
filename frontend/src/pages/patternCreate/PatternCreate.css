@@ -1,0 +1,98 @@
+/* Styling for the entire page */
+.pattern-card-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 50px;
+  height: 100vh; /* Take up the full viewport height */
+  overflow-y: auto; /* Ensure scrolling is enabled */
+  box-sizing: border-box;
+  background-color: #404040;
+}
+
+.pattern-card-wrapper {
+  transform: scale(1.5); /* Control the scale */
+  transform-origin: top center; /* Ensures scaling starts from the top-left corner */
+  margin-bottom: 60px; /* Space between the scaled cards */
+  width: 30%;
+}
+
+/* Styling for the individual cards */
+.pattern-card {
+  background-color: white;
+  border-radius: 10px;
+  padding: 30px;
+  width: 100%;
+  max-width: 800px; /* Max width to limit the card size */
+  margin: 20px 0; /* Space between cards */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  font-size: 1.2rem;
+}
+
+/* Flex container for each label-input pair */
+.input-group {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  align-self: center;
+  justify-content: space-between;
+}
+
+/* Styling for the label */
+.input-group label {
+  flex-basis: 150px; /* Adjust label width */
+  margin-right: 10px;
+  font-weight: bold;
+}
+
+/* Styling for the input field */
+.input-group input, .input-group select {
+  flex-grow: 1;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: auto;
+}
+
+/* Ensure input elements are not too wide */
+.input-group input[type="text"], .input-group select {
+  width: 150px;
+  padding: 5px;
+}
+
+.input-checkbox-group {
+    display: flex;
+  align-items: center;
+  margin-top: 20px;
+  align-self: center;
+  justify-content: space-between;
+}
+
+.input-checkbox-group label {
+    flex-basis: 50px; /* Adjust label width */
+    margin-right: 1px;
+    font-weight: bold;
+}
+
+.input-checkbox-group input {
+  flex-grow: 1;
+  padding: 1px;
+  border: 1px solid #ccc;
+  border-radius: 2px;
+  width: auto;
+}
+
+/* Add some styles for responsiveness */
+@media (max-width: 768px) {
+  .pattern-card {
+    width: 95%; /* Make the card take more width on smaller screens */
+  }
+
+  .input-group label,
+  .input-group input,
+  .input-group select {
+    font-size: 0.9rem;
+  }
+}

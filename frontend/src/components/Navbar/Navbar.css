@@ -32,13 +32,15 @@ nav#navbar-coloring {
 .nav-link {
   color: #f7d9c4 !important; /* Set button text color */
   padding: 10px 20px;
+  height: 100%;
+  width: 100%;
   border-radius: 5px; /* Rounded corners for buttons */
-  border: 2px solid transparent;
   transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
 .nav-link:hover {
   border-color: #8b5e3c;
+  transform: scale(1.05);
 }
 
 .nav-link.active {
@@ -63,3 +65,16 @@ nav#navbar-coloring {
   margin-right: 10px;
   border: 2px solid #ffffff; /* Optional: Add a white border around the profile image */
 }
+
+/* Ensure the collapsed menu has a background color */
+.navbar-collapse {
+  z-index: 1002;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.navbar-collapse.show {
+  background-color: #242424; /* Ensure the menu stays visible when shown */
+  opacity: 1;
+  visibility: visible;
+}
+

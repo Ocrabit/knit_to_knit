@@ -38,7 +38,7 @@ html {
 
 /* Sidebar heading with a cozy knit feel */
 #sidebar-wrapper .sidebar-heading {
-  padding: 1.5rem 1rem;
+  padding: 3rem 1rem 1.5rem;
   font-size: 1.4rem;
   font-weight: bold;
   color: #fff5e1; /* Warm, creamy white */
@@ -97,9 +97,9 @@ html {
 
 /* Toggle button for the sidebar */
 .toggle-btn {
-  position: fixed;
-  top: calc(var(--navbar-height) + 10px); /* Adjusted position relative to the navbar */
-  left: 10px;
+  position: absolute; /* Absolute positioning within the sidebar */
+  top: 10px; /* Keep it near the top */
+  right: 10px; /* Initially on the right of the sidebar */
   width: 40px;
   height: 40px;
   background-color: #8b5e3c;
@@ -112,16 +112,13 @@ html {
   align-items: center;
   justify-content: center;
   font-size: 1.5rem;
-  transition: all 0.3s ease;
+  transition: background-color 0.3s ease, color 0.3s ease, opacity 0.3s ease;
 }
 
-/* Move the toggle button inside the sidebar when open */
-#sidebar-wrapper.open .toggle-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  left: auto; /* Override left positioning */
-  transform: none;
+/* When the sidebar is closed, move the toggle button outside to the right */
+#sidebar-wrapper.closed .toggle-btn {
+  visibility: visible;
+  left: 10px;
 }
 
 /* Toggle button hover effect */

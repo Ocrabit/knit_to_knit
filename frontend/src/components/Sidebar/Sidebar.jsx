@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import './Sidebar.css'; // Reuse your existing CSS
+import './Sidebar.css';
 
 const Sidebar = () => {
   const location = useLocation();
@@ -13,20 +13,14 @@ const Sidebar = () => {
   return (
     <>
       {/* Toggle button with dynamic styles */}
-      <button
-        className="toggle-btn"
-        onClick={toggleSidebar}
-        style={
-          isOpen
-            ? { position: 'absolute', top: '70px', right: '10px' } // Sidebar open: move to top-right inside the sidebar
-            : { position: 'fixed', top: '70px', left: '10px' }    // Sidebar closed: stay at top-left of the screen
-        }
-      >
-        {isOpen ? '◄' : '➔'}
-      </button>
 
       <div id="sidebar-wrapper" className={isOpen ? '' : 'closed'}>
-
+        <button
+            className="toggle-btn"
+            onClick={toggleSidebar}
+        >
+          {isOpen ? '◄' : '➔'}
+        </button>
         <div className="sidebar-heading">Knitting Navbar</div>
         <ul className="list-group">
           <li className="list-group-item">
@@ -39,23 +33,39 @@ const Sidebar = () => {
           </li>
           <li className="list-group-item">
             <Link
-                to="/create"
-                className={`nav-link ${location.pathname === '/create' ? 'active' : ''}`}
-            >
-              Create
-            </Link>
-          </li>
-          <li className="list-group-item">
-            <Link
                 to="/patterns"
                 className={`nav-link ${location.pathname === '/patterns' ? 'active' : ''}`}
             >
               Patterns
             </Link>
           </li>
+          <li className="list-group-item">
+            <Link
+                to="/create-pattern"
+                className={`nav-link ${location.pathname === '/create-pattern' ? 'active' : ''}`}
+            >
+              Pattern Create
+            </Link>
+          </li>
+          <li className="list-group-item">
+            <Link
+                to="/designs"
+                className={`nav-link ${location.pathname === '/designs' ? 'active' : ''}`}
+            >
+              Designs
+            </Link>
+          </li>
+          <li className="list-group-item">
+            <Link
+                to="/create-design"
+                className={`nav-link ${location.pathname === '/create-design' ? 'active' : ''}`}
+            >
+              Design Create
+            </Link>
+          </li>
         </ul>
       </div>
-      </>
+    </>
   );
 };
 

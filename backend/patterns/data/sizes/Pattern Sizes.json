@@ -1,0 +1,173 @@
+{
+  "patterns": {
+    "basic": {
+      "sizes": {
+        "extra small (XS)": {
+          "swatch": {
+            "width": 4,
+            "height": 4,
+            "stitches": 22,
+            "rows": 30
+          },
+          "torso": {
+            "width": 16,
+            "height": 22,
+            "ribbing": "normal",
+            "ribbing_height": 2,
+            "taper_offset": 1,
+            "taper_hem": 15,
+            "neck_offset_width": 6,
+            "neck_offset_height": 2.5,
+            "neck_depth": 3.5
+          },
+          "sleeve": {
+            "width": 6,
+            "height": 17,
+            "ribbing": "normal",
+            "ribbing_height": 2,
+            "taper_offset": 1,
+            "taper_hem": 4.5,
+            "taper_style": "both",
+            "neck_offset_width": 0,
+            "neck_offset_height": 0,
+            "neck_depth": 0
+          },
+          "needle_size": 3.25,
+          "needle_size_str": "US 2-3 (2.75-3.25mm)"
+        },
+        "small (S)": {
+          "swatch": {
+            "width": 4,
+            "height": 4,
+            "stitches": 20,
+            "rows": 28
+          },
+          "torso": {
+            "width": 17,
+            "height": 23,
+            "ribbing": "normal",
+            "ribbing_height": 2,
+            "taper_offset": 1,
+            "taper_hem": 16,
+            "neck_offset_width": 6.5,
+            "neck_offset_height": 2.5,
+            "neck_depth": 3.5
+          },
+          "sleeve": {
+            "width": 6.5,
+            "height": 18,
+            "ribbing": "normal",
+            "ribbing_height": 2,
+            "taper_offset": 1,
+            "taper_hem": 5,
+            "taper_style": "both",
+            "neck_offset_width": 0,
+            "neck_offset_height": 0,
+            "neck_depth": 0
+          },
+          "needle_size": 3.75,
+          "needle_size_str": "US 4-5 (3.5-3.75mm)"
+        },
+        "medium (M)": {
+          "swatch": {
+            "width": 4,
+            "height": 4,
+            "stitches": 18,
+            "rows": 26
+          },
+          "torso": {
+            "width": 18.5,
+            "height": 24,
+            "ribbing": "normal",
+            "ribbing_height": 2,
+            "taper_offset": 1,
+            "taper_hem": 17,
+            "neck_offset_width": 7,
+            "neck_offset_height": 2.75,
+            "neck_depth": 3.75
+          },
+          "sleeve": {
+            "width": 7,
+            "height": 19,
+            "ribbing": "normal",
+            "ribbing_height": 2,
+            "taper_offset": 1,
+            "taper_hem": 5.5,
+            "taper_style": "both",
+            "neck_offset_width": 0,
+            "neck_offset_height": 0,
+            "neck_depth": 0
+          },
+          "needle_size": 4.5,
+          "needle_size_str": "US 6-7 (4-4.5mm)"
+        },
+        "large (L)": {
+          "swatch": {
+            "width": 4,
+            "height": 4,
+            "stitches": 16,
+            "rows": 24
+          },
+          "torso": {
+            "width": 20,
+            "height": 25,
+            "ribbing": "normal",
+            "ribbing_height": 2,
+            "taper_offset": 1,
+            "taper_hem": 18,
+            "neck_offset_width": 7.5,
+            "neck_offset_height": 3,
+            "neck_depth": 4
+          },
+          "sleeve": {
+            "width": 7.5,
+            "height": 20,
+            "ribbing": "normal",
+            "ribbing_height": 2,
+            "taper_offset": 1,
+            "taper_hem": 6,
+            "taper_style": "both",
+            "neck_offset_width": 0,
+            "neck_offset_height": 0,
+            "neck_depth": 0
+          },
+          "needle_size": 5.5,
+          "needle_size_str": "US 8-9 (5-5.5mm)"
+        },
+        "extra large (XL)": {
+          "swatch": {
+            "width": 4,
+            "height": 4,
+            "stitches": 14,
+            "rows": 22
+          },
+          "torso": {
+            "width": 22,
+            "height": 26,
+            "ribbing": "normal",
+            "ribbing_height": 2,
+            "taper_offset": 1,
+            "taper_hem": 19,
+            "neck_offset_width": 8,
+            "neck_offset_height": 3.25,
+            "neck_depth": 4.25
+          },
+          "sleeve": {
+            "width": 8,
+            "height": 21,
+            "ribbing": "normal",
+            "ribbing_height": 2,
+            "taper_offset": 1,
+            "taper_hem": 6.5,
+            "taper_style": "both",
+            "neck_offset_width": 0,
+            "neck_offset_height": 0,
+            "neck_depth": 0
+          },
+          "needle_size": 7.5,
+          "needle_size_str": "US 10-11 (6-8mm)"
+        }
+      }
+    }
+  }
+}
