@@ -1,8 +1,11 @@
 import json
+from collections import deque
 import numpy as np
 from PIL import Image
 from pathlib import Path
 import sys
+
+from numpy import dtype
 
 
 # SIMPLIFICATION FUNCTIONS
@@ -76,12 +79,7 @@ def calculate_neck_vertices(starting_point, stitches_decrease, rows_decrease):
 
 # READ JSONS
 def standard_size_values(pattern, size):
-    if getattr(sys, 'frozen', False):  # Check if running in a bundled application
-        base_path = Path(sys._MEIPASS)
-    else:
-        base_path = Path(__file__).parent.parent.parent  # Adjust as needed for your development environment
-
-    size_path = base_path / "data/patterns/sizes/Pattern Sizes.json"
+    size_path = "patterns/data/sizes/Pattern Sizes.json"
 
     # Open and read the JSON file
     with open(size_path, 'r') as file:
@@ -99,8 +97,20 @@ def standard_size_values(pattern, size):
 
 # ARRAY HANDLER #
 def initialize_array(width, height):
-    array = np.zeros((height, width), dtype=int)
-    return array
+    array_dtype = np.dtype([
+        ('shape', np.int8),
+        ('color', np.int8),
+        ('stitch_type', np.int8),
+    ])
+
+    pattern_array = np.zeros((height, width), dtype=array_dtype)
+
+    # Set default values
+    pattern_array['shape'] = 0
+    pattern_array['color'] = 0
+    pattern_array['stitch_type'] = 0
+
+    return pattern_array
 
 
 def bresenham_line(x0, y0, x1, y1):
@@ -137,12 +147,12 @@ def draw_path_on_array(array, vertices, value: int = 1):
         # Set the value of each point on the array with bounds checking
         for x, y in points:
             if 0 <= y < array.shape[0] and 0 <= x < array.shape[1]:
-                array[y, x] = value
+                array['shape'][y, x] = value
             else:
                 print(f"Warning: Point ({x}, {y}) is out of bounds for array with shape {array.shape}")
 
 
-def draw_area_on_array(base_array, top_left, bottom_right, fill_value=1):
+def draw_area_on_array(array, top_left, bottom_right, fill_value=1):
     """
     Draws a rectangular area on a 2D array using top-left and bottom-right coordinates.
 
@@ -163,41 +173,86 @@ def draw_area_on_array(base_array, top_left, bottom_right, fill_value=1):
         y1, y2 = y2, y1
 
     # Ensure the coordinates are within the boundaries of the array
-    x1 = max(0, min(x1, base_array.shape[1] - 1))
-    y1 = max(0, min(y1, base_array.shape[0] - 1))
-    x2 = max(0, min(x2, base_array.shape[1] - 1))
-    y2 = max(0, min(y2, base_array.shape[0] - 1))
+    x1 = max(0, min(x1, array.shape[1] - 1))
+    y1 = max(0, min(y1, array.shape[0] - 1))
+    x2 = max(0, min(x2, array.shape[1] - 1))
+    y2 = max(0, min(y2, array.shape[0] - 1))
 
     # Fill the specified area
-    base_array[y1:y2+1, x1:x2+1] = fill_value
+    array['shape'][y1:y2+1, x1:x2+1] = fill_value
 
-    return base_array
+    return array
+
+
+def flood_fill_outside(array, fill_value=-1):
+    height, width = array.shape[:2]
+    visited = np.zeros((height, width), dtype=bool)
+    queue = deque()
+
+    # Enqueue all boundary pixels that are zeros
+    for x in range(width):
+        if array['shape'][0, x] == 0:
+            queue.append((0, x))
+        if array['shape'][height - 1, x] == 0:
+            queue.append((height - 1, x))
+    for y in range(height):
+        if array['shape'][y, 0] == 0:
+            queue.append((y, 0))
+        if array['shape'][y, width - 1] == 0:
+            queue.append((y, width - 1))
+
+    # Perform BFS flood fill
+    while queue:
+        y, x = queue.popleft()
+        if visited[y, x]:
+            continue
+        visited[y, x] = True
+        if array['shape'][y, x] == 0:
+            array['shape'][y, x] = fill_value
+            # Enqueue neighboring pixels
+            for dy, dx in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                ny, nx = y + dy, x + dx
+                if 0 <= ny < height and 0 <= nx < width:
+                    if array['shape'][ny, nx] == 0 and not visited[ny, nx]:
+                        queue.append((ny, nx))
 
 
 def array_path_to_image(array_file_path):
     # Load the array from the text file
-    array = np.loadtxt(array_file_path, dtype=int)
+    array = load_pattern(array_file_path)
 
     # Get the dimensions of the array
-    height, width = array.shape
+    height, width = array.shape[:2]
 
     # Create a new image with a 1x1 pixel representation for each array element
-    image = Image.new('RGB', (width, height), color='white')
+    image = Image.new('RGBA', (width, height), color=(255, 255, 255, 255))
     pixels = image.load()
 
     # Iterate through the array and set pixels
     for y in range(height):
         for x in range(width):
-            # Set pixel to black if the array value is 1, white otherwise
-            if array[y, x] == 1:
-                pixels[x, y] = (128, 128, 128)  # Grey
-            elif array[y, x] == 2:
-                pixels[x, y] = (255, 192, 203)  # Pink
+            value = array['shape'][y, x]
+            if value == -1:
+                pixels[x, y] = (0, 0, 0, 0)  # Black for outside
+            elif value == 0:
+                pixels[x, y] = (255, 255, 255, 255)  # White for inside
+            elif value == 1:
+                pixels[x, y] = (128, 128, 128, 255)  # Grey for outlines
+            elif value == 2:
+                pixels[x, y] = (255, 192, 203, 255)  # Pink for special areas
             else:
-                pixels[x, y] = (255, 255, 255)  # White
+                pixels[x, y] = (255, 255, 255, 255)  # Default to white
 
     # Save the image
     return image
+
+
+def save_pattern(array, file_path):
+    np.save(file_path, array)
+
+
+def load_pattern(file_path):
+    return np.load(file_path)
 
 
 class KnittingConversions:

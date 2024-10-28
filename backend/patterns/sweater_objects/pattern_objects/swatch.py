@@ -1,9 +1,13 @@
 class Swatch:
-    def __init__(self, width: float, length: float, num_stitches: int, num_rows: int):
+    def __init__(self, width: float, height: float, stitches: int, rows: int, needle_size: float):
         self.width = width
-        self.length = length
-        self.num_stitches = num_stitches
-        self.num_rows = num_rows
+        self.height = height
+        self.stitches = stitches
+        self.rows = rows
+        self.needle_size = needle_size
 
     def get_swatch(self):
-        return self.width, self.length, self.num_stitches, self.num_rows
+        return self.width, self.height, self.stitches, self.rows
+
+    def get_needle(self):
+        return self.needle_size

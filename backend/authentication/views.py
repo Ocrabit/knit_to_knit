@@ -23,7 +23,6 @@ def api_login(request):
         return JsonResponse({'error': 'Invalid credentials'}, status=400)
 
 
-@csrf_exempt
 @api_view(['POST'])
 def api_logout(request):
     logout(request)

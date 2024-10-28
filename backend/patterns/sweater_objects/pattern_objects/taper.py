@@ -7,12 +7,10 @@ class Taper:
         self.hem_size = hem_size  # The width to taper to (in inches)
         self.taper_style = taper_style
 
-        # Total width of piece (in inches) - width
-        # Total height of piece (in inches) - height
-        # Total number of stitches - total_stitches (without ribbing if needed)
+        # Total width and height of the piece
         self.total_working_rows = working_rows
         self.total_stitches = total_stitches
-        # Total number of rows - total_rows
+
         print('\nTaper inputs: ',
               f'offset_width: {taper_offset}',
               f'offset_height: {hem_size}',
@@ -43,21 +41,11 @@ class Taper:
         print(f'Taper rows_decrease: {self.rows_decrease}')
         print(f'stitches_decrease: {self.stitches_decrease}')
 
-        # Make a decrease function called taper_decrease that calculates the slope and returns the rows_decrease and stitches_decrease
-        # The goal is to return something similar to below
-        #rows_decrease: [19, 3, 2, 2]
-        #stitches_decrease: [2, 2, 3, 4]
-        # Each value in the decrease statement corresponds with an alternating adjustment to the points.
-        # Ex. first point (x,y), next point (x + stitches_decrease[0], y), next point (x, y + rows_decrease[0), next point (x + stitches_decrease[1], y) etc...
-
     def taper_decrease(self, remaining_rows, hem_offset):
         print(remaining_rows, hem_offset)
         # Initialize lists to store row and stitch decreases
         rows_decrease = []
         stitches_decrease = []
-
-        # Calculate the initial slope (dy/dx)
-        slope = remaining_rows / hem_offset
 
         # Initialize counters for the row and stitch accumulation
         accumulated_rows = 0
@@ -90,60 +78,99 @@ class Taper:
     def validate_decreases(self):
         # Adjust rows_decrease if it exceeds total rows
         total_rows_decrease = sum(self.rows_decrease)
-        if total_rows_decrease >= self.total_working_rows:
-            excess_rows = total_rows_decrease - (self.total_working_rows - 1)
+        if total_rows_decrease > self.total_working_rows:
+            excess_rows = total_rows_decrease - self.total_working_rows
             self.rows_decrease[-1] -= excess_rows
             print(f"Adjusted rows_decrease to not exceed total rows. Excess: {excess_rows}")
 
         # Adjust stitches_decrease if it exceeds total stitches
         total_stitches_decrease = sum(self.stitches_decrease)
-        if total_stitches_decrease >= self.total_stitches:
-            excess_stitches = total_stitches_decrease - (self.total_stitches - 1)
+        if total_stitches_decrease > self.total_stitches:
+            excess_stitches = total_stitches_decrease - self.total_stitches
             self.stitches_decrease[-1] -= excess_stitches
             print(f"Adjusted stitches_decrease to not exceed total stitches. Excess: {excess_stitches}")
 
     def add_to_array(self, array):
+        # Initialize end positions
+        left_end_x = 0
+        left_end_y = self.offset_rows - 1
+        right_end_x = self.total_stitches - 1
+        right_end_y = self.offset_rows - 1
 
-        # Draw the left taper offset
-        x_0, y_0 = 0, 0
-        x_1, y_1 = 0, self.offset_rows-1
-        tf.draw_path_on_array(array, [(x_0, y_0), (x_1, y_1)])
+        # Draw the left taper offset if needed
+        if self.taper_style in [None, "both", "bottom"]:
+            x_0, y_0 = 0, 0
+            x_1, y_1 = 0, self.offset_rows - 1
+            tf.draw_path_on_array(array, [(x_0, y_0), (x_1, y_1)])
 
-        # Build and Draw Taper
-        x = 0  # set start x
-        y = self.offset_rows-1  # set start y
+            # Build and Draw Left Taper
+            x = 0  # set start x
+            y = self.offset_rows - 1  # set start y
 
-        print(f'Starting taper vertices\nrows_decrease: {self.rows_decrease}')
-        # Create Vertices for left side
-        left_line_vertices = [(x, y)]
-        for i in range(len(self.rows_decrease)):
-            y += self.rows_decrease[i]
-            left_line_vertices.append((x, y))
-            x += self.stitches_decrease[i]
-            left_line_vertices.append((x, y))
-        print(f'Left vertices: {left_line_vertices}')
+            print(f'Starting left taper vertices\nrows_decrease: {self.rows_decrease}')
+            # Create Vertices for left side
+            left_line_vertices = [(x, y)]
+            for i in range(len(self.rows_decrease)):
+                y += self.rows_decrease[i]
+                left_line_vertices.append((x, y))
+                x += self.stitches_decrease[i]
+                left_line_vertices.append((x, y))
+            print(f'Left vertices: {left_line_vertices}')
 
+            # Add left to array
+            tf.draw_path_on_array(array, left_line_vertices)
 
-        # Add left to array
-        tf.draw_path_on_array(array, left_line_vertices)
+            left_end_x = x
+            left_end_y = y
+
+        # Draw the right taper offset if needed
+        if self.taper_style in [None, "both", "top"]:
+            x_0, y_0 = self.total_stitches - 1, 0
+            x_1, y_1 = self.total_stitches - 1, self.offset_rows - 1
+            tf.draw_path_on_array(array, [(x_0, y_0), (x_1, y_1)])
+
+            # Build and Draw Right Taper
+            x = self.total_stitches - 1  # Start from the right edge
+            y = self.offset_rows - 1  # Reset y to the start of the taper
+            right_line_vertices = [(x, y)]
+            for i in range(len(self.rows_decrease)):
+                y += self.rows_decrease[i]
+                right_line_vertices.append((x, y))
+                x -= self.stitches_decrease[i]
+                right_line_vertices.append((x, y))
+
+            print(f'Right vertices: {right_line_vertices}')
+
+            # Add right taper part to array
+            tf.draw_path_on_array(array, right_line_vertices)
+
+            right_end_x = x
+            right_end_y = y
 
         # Add hem to array
-        tf.draw_path_on_array(array, [(x, y), (x+self.hem_stitches-1, y)])
+        if self.taper_style == "bottom":
+            # Hem extends from left_end_x to the right edge
+            hem_start_x = left_end_x
+            hem_end_x = self.total_stitches - 1
+            y = left_end_y
+            tf.draw_path_on_array(array, [(hem_start_x, y), (hem_end_x, y)])
 
-        # Create Vertices for right side
-        x += self.hem_stitches-1
-        right_line_vertices = [(x, y)]
-        for i in range(len(self.rows_decrease) - 1, -1, -1):
-            x += self.stitches_decrease[i]
-            right_line_vertices.append((x, y))
-            y -= self.rows_decrease[i]
-            right_line_vertices.append((x, y))
-        print(f'Right vertices: {right_line_vertices}')
+            # Draw bottom vert side
+            tf.draw_path_on_array(array, [(self.total_stitches-1, 0), (self.total_stitches-1, self.total_working_rows-1)])
 
-        # Add right taper part to array
-        tf.draw_path_on_array(array, right_line_vertices)
+        elif self.taper_style == "top":
+            # Hem extends from the left edge to right_end_x
+            hem_start_x = 0
+            hem_end_x = right_end_x
+            y = right_end_y
+            tf.draw_path_on_array(array, [(hem_start_x, y), (hem_end_x, y)])
 
-        # Draw the right taper offset
-        x_0, y_0 = self.total_stitches - 1, 0
-        x_1, y_1 = self.total_stitches - 1, self.offset_rows - 1
-        tf.draw_path_on_array(array, [(x_0, y_0), (x_1, y_1)])
+            # Draw top vert side
+            tf.draw_path_on_array(array, [(0, 0),
+                                          (0, self.total_working_rows - 1)])
+        else:
+            # For both-sided taper, hem is between left_end_x and right_end_x
+            hem_start_x = left_end_x
+            hem_end_x = right_end_x
+            y = max(left_end_y, right_end_y)
+            tf.draw_path_on_array(array, [(hem_start_x, y), (hem_end_x, y)])

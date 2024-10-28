@@ -10,9 +10,9 @@ class Ribbing:
         if length_of_ribbing == 'thick':
             self.length_of_ribbing = 3
         elif length_of_ribbing == 'thin':
-            self.length_of_ribbing = 2
-        else:
             self.length_of_ribbing = 1
+        else:
+            self.length_of_ribbing = 2
 
         # number of rows ribbing will be
         self.rows = None
@@ -41,33 +41,41 @@ class Ribbing:
             print("RPI,", parent.RPI, "\nrows,", parent.rows, "\nHeight,", parent.height)
 
     def add_to_array(self, array, hem_stitches=None, taper_style=None):  # hem_stitches is width of hem
-        # Ensure hem_stitches is even
-        if hem_stitches is not None and hem_stitches % 2 != 0:
-            hem_stitches -= 1  # Make it even by adding 1
+        # Calculate hem offset
+        hem_offset = (self.total_stitches - hem_stitches) // 2
 
-        # Draw the ribbing section
-        if hem_stitches is not None:
-            print('RIBBING ARRAY ADD')
-            print('hem_offset-1, ', round((self.total_stitches - hem_stitches) / 2))
-            print('self.working_rows-1, ', self.working_rows-1)
-            hem_offset = round((self.total_stitches - hem_stitches) / 2)
+        # Starting coordinates
+        y_0 = self.working_rows  # Ribbing starts after working rows
 
-            x_0, y_0 = hem_offset-1, self.working_rows
-            if taper_style is not None and taper_style != 'both':
-                if taper_style == 'bottom':
-                    x_1, y_1 = self.total_stitches-1, self.working_rows + self.rows -1
-                else:  # Means Top
-                    x_0, y_0 = 0, self.working_rows-1
-                    x_1, y_1 = self.total_stitches-hem_offset-1, self.working_rows + self.rows-1
-            else:
-                x_1, y_1 = self.total_stitches-hem_offset, self.working_rows + self.rows-1
-                print(self.total_stitches)
-                print('x_1', x_1)
-                print('y_1', y_1)
+        # Ending coordinates
+        y_1 = y_0 + self.rows - 1  # Ribbing ends after its number of rows
 
+        # Adjust x coordinates based on taper_style
+        if taper_style == 'bottom':
+            x_0 = hem_offset*2  # Start from hem_offset
+            x_1 = self.total_stitches - 1  # Extend to the right edge
+        elif taper_style == 'top':
+            x_0 = 0  # Start from the left edge
+            x_1 = self.total_stitches - hem_offset*2 - 1  # End before hem_offset on the right
         else:
-            x_0, y_0 = 0, self.working_rows-1
-            x_1, y_1 = self.total_stitches-1, self.working_rows + self.rows-1
+            x_0 = hem_offset  # Start from hem_offset
+            x_1 = self.total_stitches - hem_offset - 1  # End before hem_offset on the right
 
+        # Ensure x_0 and x_1 are within bounds
+        x_0 = max(0, x_0)
+        x_1 = min(self.total_stitches - 1, x_1)
+
+        # Correct for even post
+        if (x_0+x_1) % 2 == 0:
+            x_1 += 1
+
+        # Debug statements (optional)
+        print('RIBBING ARRAY ADD')
+        print(f'hem_stitches: {hem_stitches}')
+        print(f'hem_offset: {hem_offset}')
+        print(f'x_0: {x_0}, y_0: {y_0}')
+        print(f'x_1: {x_1}, y_1: {y_1}')
+
+        # Draw the ribbing area
         tf.draw_area_on_array(array, (x_0, y_0), (x_1, y_1), 2)
 

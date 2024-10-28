@@ -15,7 +15,7 @@ export const axiosInstance = axios.create({
 });
 
 // Function to retrieve CSRF token from cookies
-const getCsrfToken = (): string => {
+export const getCsrfToken = (): string => {
   const csrfToken = document.cookie
     .split('; ')
     .find(row => row.startsWith('csrftoken='))

@@ -19,3 +19,9 @@ compose-manage.py:
 
 docker-prune-all:
 	docker system prune -a --volumes
+
+connect-website:
+	docker exec -it knit_to_knit_v2-website-1 /bin/bash
+
+connect-postgres:
+	docker exec -it knit_to_knit_v2-postgres-1 psql -U postgres

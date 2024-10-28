@@ -4,7 +4,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  padding: 50px;
+  padding: 80px;
   height: 100vh; /* Take up the full viewport height */
   overflow-y: auto; /* Ensure scrolling is enabled */
   box-sizing: border-box;
@@ -12,10 +12,8 @@
 }
 
 .pattern-card-wrapper {
-  transform: scale(1.5); /* Control the scale */
   transform-origin: top center; /* Ensures scaling starts from the top-left corner */
-  margin-bottom: 60px; /* Space between the scaled cards */
-  width: 30%;
+  width: 50%;
 }
 
 /* Styling for the individual cards */
@@ -33,6 +31,7 @@
 
 /* Flex container for each label-input pair */
 .input-group {
+  font-size: 25px;
   display: flex;
   align-items: center;
   margin-bottom: 10px;
@@ -42,28 +41,26 @@
 
 /* Styling for the label */
 .input-group label {
-  flex-basis: 150px; /* Adjust label width */
+  flex-basis: 200px; /* Adjust label width */
   margin-right: 10px;
   font-weight: bold;
+  text-align: center;
 }
 
 /* Styling for the input field */
-.input-group input, .input-group select {
+.input-group input, .input-group select, .input-group textarea {
   flex-grow: 1;
+  flex-basis: 150px;
+  max-width: 325px;
   padding: 5px;
   border: 1px solid #ccc;
   border-radius: 4px;
   width: auto;
 }
 
-/* Ensure input elements are not too wide */
-.input-group input[type="text"], .input-group select {
-  width: 150px;
-  padding: 5px;
-}
-
 .input-checkbox-group {
-    display: flex;
+  font-size: 25px;
+  display: flex;
   align-items: center;
   margin-top: 20px;
   align-self: center;
@@ -89,10 +86,50 @@
   .pattern-card {
     width: 95%; /* Make the card take more width on smaller screens */
   }
+  .pattern-card-wrapper {
+    width: 100%;
+  }
 
   .input-group label,
   .input-group input,
-  .input-group select {
+  .input-group select,
+  .input-group textarea {
     font-size: 0.9rem;
   }
+}
+
+/* loading things */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999; /* Ensure it's on top of other elements */
+}
+
+.loading-spinner {
+  border: 8px solid #f3f3f3; /* Light grey */
+  border-top: 8px solid #3498db; /* Blue */
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  animation: spin 2s linear infinite;
+}
+
+.loading-overlay p {
+  color: #fff;
+  margin-top: 20px;
+  font-size: 1.2em;
+}
+
+/* Spinner Animation */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }

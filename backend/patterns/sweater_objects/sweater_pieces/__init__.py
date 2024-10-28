@@ -1,1 +1,1 @@
-from .sweater_pieces import FrontTorso, BackTorso, LeftSleeve, RightSleeve
+from .sweater_parts import Torso, Sleeve
