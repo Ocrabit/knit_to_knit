@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { axiosInstance } from "../../services/auth.service";
 import './Dashboard.css';
+import '../../styles/Cards.css'
 
 const Dashboard = () => {
   const [recentPatterns, setRecentPatterns] = useState([]);
@@ -32,7 +33,7 @@ const Dashboard = () => {
   };
 
   return (
-      <div className="dashboard-container">
+      <div className="page-container">
           {/* Welcome/Thank You message */}
           <div className="welcome-message">
               <h2>Welcome!</h2>
@@ -42,7 +43,7 @@ const Dashboard = () => {
           {/* Recent Patterns Section in Card Format */}
           <div className="recent-section">
               <h3>3 Recent Patterns</h3>
-              <div className="page-container">
+              <div>
                   <div className="card-container">
                       {recentPatterns.map((pattern) => (
                           <div className="card" key={pattern.id}>
@@ -62,7 +63,7 @@ const Dashboard = () => {
           {/* Recent Grid Designs Section in Card Format */}
           <div className="recent-section">
               <h3>3 Recent Grid Designs</h3>
-              <div className="page-container">
+              <div>
                   <div className="card-container">
                       {recentGrids.map((grid) => (
                           <div className="card" key={grid.id}>

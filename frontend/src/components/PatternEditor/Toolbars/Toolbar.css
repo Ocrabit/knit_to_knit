@@ -1,0 +1,40 @@
+#top-toolbar {
+  position: fixed;
+  top: calc(var(--navbar-height) + 5px);
+  left: 50%;
+  transform: translateX(-50%);
+  justify-content: center;
+  display: flex;
+  flex-direction: row; /* Stack the elements vertically */
+  gap: 10px; /* Space between the dropdowns */
+  padding: 10px;
+  background-color: #8b5e3c; /* Match the toolbox background color */
+  z-index: 1000;
+  border-radius: 20px; /* Rounded corners for a compact look */
+  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
+}
+
+.top-toolbar-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-color: #fff5e1;
+  border: none;
+  border-radius: 30px;
+  padding: 10px 15px;
+  font-size: 16px;
+  color: #333;
+  cursor: pointer;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+  outline: none;
+}
+
+.top-toolbar-select:focus {
+  outline: none;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+}
+
+.top-toolbar-select option {
+  background-color: #fff5e1; /* Background color of options */
+  padding: 10px;
+}

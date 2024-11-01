@@ -40,7 +40,7 @@ class Ribbing:
             print("Working_rows,", parent.working_rows, "\nWorking_Height,", parent.working_height)
             print("RPI,", parent.RPI, "\nrows,", parent.rows, "\nHeight,", parent.height)
 
-    def add_to_array(self, array, hem_stitches=None, taper_style=None):  # hem_stitches is width of hem
+    def add_to_array(self, array, hem_stitches=0, taper_style=None):  # hem_stitches is width of hem
         # Calculate hem offset
         hem_offset = (self.total_stitches - hem_stitches) // 2
 

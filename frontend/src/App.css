@@ -37,3 +37,27 @@ html, body, #root{
   overflow: hidden; /* Prevent scrolling */
   transition: margin-left 0.3s ease; /* Smooth transition when sidebar collapses */
 }
+
+/* Page Container Styling */
+.page-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100vh; /* Full viewport height */
+    margin: 0 auto;
+    padding: 2rem;
+    background-color: #f7e4d0; /* Match soft, cozy background color */
+    color: #8b5e3c; /* Knitting-theme brown */
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Header Styling */
+.page-container h1 {
+    margin-top: 1rem;
+    text-align: center;
+    font-size: 2.5rem;
+    color: #8b5e3c; /* Knitting-theme color */
+    margin-bottom: 1.5rem;
+    font-family: 'Courier New', Courier, monospace; /* Consistent knitting theme font */
+}

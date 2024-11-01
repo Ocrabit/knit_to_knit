@@ -1,10 +1,12 @@
+/* GridEditor.jsx */
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { TransformWrapper, TransformComponent, useControls } from "react-zoom-pan-pinch";
 import './GridEditor.css';
 import * as Icons from '../../assets/icons/grid/icon_export';
 
 // Local storage key for the grid state
-const LOCAL_STORAGE_KEY = 'savedGrid';
+const LOCAL_STORAGE_KEY = 'savedDesign';
 
 const getCSSVariable = (variable) => {
   const value = getComputedStyle(document.documentElement).getPropertyValue(variable);
@@ -298,50 +300,50 @@ const GridEditor = () => {
   };
 
   // Set previous selections from storage.
-useEffect(() => {
-  // Load saved marker, color, and active mode from local storage
-  const savedMarker = localStorage.getItem('selectedMarker');
-  const savedColor = localStorage.getItem('selectedColor');
-  const savedMode = localStorage.getItem('activeMode');
-  const savedLineStyle = localStorage.getItem('selectedLineStyle');
-  const savedCustomLineStyle = localStorage.getItem('customLineStyle');
-  const savedRows = localStorage.getItem('rows')
-  const savedColumns = localStorage.getItem('columns')
-
-  if (savedMarker) {
-    setSelectedMarking(savedMarker); // Set the saved marker
-  }
-  if (savedColor) {
-    setSelectedColor(savedColor); // Set the saved color
-  }
-  if (savedMode) {
-    handleModeSelect(savedMode); // Set the saved mode as the active mode
-  } else {
-    handleModeSelect('draw'); // Default to draw if no mode is saved
-  }
-  if (savedLineStyle) {
-    setSelectedLineStyle(savedLineStyle); // Set the saved line style
-  }
-  if (savedCustomLineStyle) {
-    setCustomLineStyle(JSON.parse(savedCustomLineStyle)); // Parse and set the custom line style
-  }
-  if (savedRows && savedColumns) {
-    setRows(parseInt(savedRows, 10));
-    setColumns(parseInt(savedColumns, 10));
-  }
-
-}, []);
-  const [containerWidth, setContainerWidth] = useState(0);
-  const [containerHeight, setContainerHeight] = useState(0);
-
-  // Fetch dimensions after the component has mounted
   useEffect(() => {
-    if (canvasContainerRef.current) {
-      // Set the container width and height after it's rendered
-      setContainerWidth(canvasContainerRef.current.clientWidth);
-      setContainerHeight(canvasContainerRef.current.clientHeight);
+    // Load saved marker, color, and active mode from local storage
+    const savedMarker = localStorage.getItem('selectedMarker');
+    const savedColor = localStorage.getItem('selectedColor');
+    const savedMode = localStorage.getItem('activeMode');
+    const savedLineStyle = localStorage.getItem('selectedLineStyle');
+    const savedCustomLineStyle = localStorage.getItem('customLineStyle');
+    const savedRows = localStorage.getItem('rows')
+    const savedColumns = localStorage.getItem('columns')
+
+    if (savedMarker) {
+      setSelectedMarking(savedMarker); // Set the saved marker
     }
+    if (savedColor) {
+      setSelectedColor(savedColor); // Set the saved color
+    }
+    if (savedMode) {
+      handleModeSelect(savedMode); // Set the saved mode as the active mode
+    } else {
+      handleModeSelect('draw'); // Default to draw if no mode is saved
+    }
+    if (savedLineStyle) {
+      setSelectedLineStyle(savedLineStyle); // Set the saved line style
+    }
+    if (savedCustomLineStyle) {
+      setCustomLineStyle(JSON.parse(savedCustomLineStyle)); // Parse and set the custom line style
+    }
+    if (savedRows && savedColumns) {
+      setRows(parseInt(savedRows, 10));
+      setColumns(parseInt(savedColumns, 10));
+    }
+
   }, []);
+    const [containerWidth, setContainerWidth] = useState(0);
+    const [containerHeight, setContainerHeight] = useState(0);
+
+    // Fetch dimensions after the component has mounted
+    useEffect(() => {
+      if (canvasContainerRef.current) {
+        // Set the container width and height after it's rendered
+        setContainerWidth(canvasContainerRef.current.clientWidth);
+        setContainerHeight(canvasContainerRef.current.clientHeight);
+      }
+    }, []);
 
   const minScale = Math.min(containerWidth / gridWidth, (containerHeight-100) / gridHeight, 1);
 
@@ -411,7 +413,7 @@ useEffect(() => {
         </div>
 
 
-      {/* Toolbox with Buttons */}
+      {/* SideToolbar with Buttons */}
         <div id="toolbox">
           {/* Active Buttons*/}
           <button className={`toolbox-button ${activeMode === 'draw' ? 'active' : ''}`}

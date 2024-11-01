@@ -1,17 +1,28 @@
-from django.test import TestCase
-
-# Create your tests here.
-from django.test import RequestFactory
+from django.test import TestCase, RequestFactory
 from django.contrib.auth.models import User
-from .views import pattern_view
+from rest_framework.test import force_authenticate
+
 from .models import Pattern
+from .views import recalculate_pattern
 
-user = User.objects.get(username='admin')
+# Useless right now
+class TestRecalculatePattern(TestCase):
+    def setUp(self):
+        # Create a test user and pattern (assumes the `Pattern` model and other dependencies exist)
+        self.user, created = User.objects.get_or_create(username='admin', defaults={'password': '123'})
+        self.factory = RequestFactory()
+        self.pattern = Pattern.objects.get(id=12)
+        print(self.pattern)
 
-# simulate request
-factory = RequestFactory()
-request = factory.get('/api/pattern-view/', {'pattern_id': '1'})
-request.user = user
+    def test_recalculate_pattern(self):
+        # Simulate a POST request with the pattern ID
+        request = self.factory.post(f'/api/pattern-view/{self.pattern.id}/')
 
-# Call view function
-response = pattern_view(request)
+        force_authenticate(request, user=self.user)
+
+        # Call view function and pass pattern ID
+        response = recalculate_pattern(request, pattern_id=self.pattern.id)
+
+        # Assert the response status code is 200
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['message'], "Pattern recalculated successfully")

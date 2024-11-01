@@ -99,8 +99,10 @@ const PatternCreate = () => {
       // Call the TypeScript service function to compile the pattern
       const response = await compilePattern(data);
       alert(response.message || "Pattern compiled successfully!");
+      console.log(response.pattern);
+      const patternId = response.pattern_id;
 
-      navigate('/pattern-view');
+      navigate(`/pattern-view/${patternId}`);
     } catch (error) {
       alert(error.message || "An error occurred while compiling the pattern.");
     } finally {
@@ -250,7 +252,7 @@ const PatternCreate = () => {
                   <div className="input-group">
                     <label>Ribbing Size:</label>
                     <select name="ribbing" value={torsoDimensions.ribbing}
-                            onChange={handleTorsoChange} defaultValue="normal">
+                            onChange={handleTorsoChange}>
                       <option value="thin">Thin</option>
                       <option value="normal">Normal</option>
                       <option value="thick">Thick</option>
@@ -360,7 +362,7 @@ const PatternCreate = () => {
                   <div className="input-group">
                     <label>Ribbing Size:</label>
                     <select name="ribbing" value={sleeveDimensions.ribbing}
-                            onChange={handleSleeveChange} defaultValue="normal">
+                            onChange={handleSleeveChange} >
                       <option value="thin">Thin</option>
                       <option value="normal">Normal</option>
                       <option value="thick">Thick</option>

@@ -25,3 +25,7 @@ connect-website:
 
 connect-postgres:
 	docker exec -it knit_to_knit_v2-postgres-1 psql -U postgres
+
+remove_unamed_volumes:
+	docker volume ls -q | grep -E '^[0-9a-f]{64}$' | xargs -r docker volume rm
+

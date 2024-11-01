@@ -16,6 +16,7 @@ services:
     environment: *database-variables
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    restart: no # For now in dev | look into what to do for prod
 
   # Django website service
   website:
@@ -34,6 +35,7 @@ services:
       - db_migrate
     ports:
       - "8000:8000"
+    restart: no # For now in dev | look into what to do for prod
 
   # Database migration service
   db_migrate:
@@ -46,6 +48,7 @@ services:
     environment: *app-variables
     depends_on:
       - postgres
+    restart: no # For now in dev | look into what to do for prod
 
   # Vite React frontend service (depends on postgres)
   vite:
@@ -64,7 +67,7 @@ services:
     depends_on:
       - postgres
     command: npm run dev -- --host
-
+    restart: no # For now in dev | look into what to do for prod
 volumes:
   postgres_data:
     driver: local

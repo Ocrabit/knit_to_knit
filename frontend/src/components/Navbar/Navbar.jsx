@@ -34,7 +34,7 @@ const Navbar = ({ isAuthenticated, user, username, logout }) => {
             </li>
             <li className="nav-item">
               <Link className={`nav-link ${location.pathname === '/contact' ? 'active' : ''}`} to="/contact">
-                Contact Us
+                Contact
               </Link>
             </li>
           </ul>

@@ -1,0 +1,39 @@
+/* src/pages/About/About.css */
+
+.about-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  background-color: #f7e4d0; /* Warm, welcoming background color */
+  color: #8b5e3c; /* Brown for knitting warmth */
+  min-height: 100vh;
+  text-align: center;
+
+  margin: auto;
+}
+
+.about-container h1 {
+  font-size: 2.5rem;
+  font-family: "Courier New", Courier, monospace; /* Cozy, handmade style */
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid #f0c987;
+}
+
+.about-container h4 {
+  margin-top: 1.5rem;
+  font-size: 1.5rem;
+  color: #6b4226;
+  font-family: "Courier New", Courier, monospace;
+  margin-bottom: 1rem;
+  border-bottom: 2px solid #f0c987;
+  padding-bottom: 0.5rem;
+  letter-spacing: 1px;
+}
+
+.about-container p {
+  font-size: 1.2rem;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}

@@ -1,0 +1,34 @@
+/* PatternGrid.css */
+.pattern-grid-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.tool-panel {
+  margin-bottom: 10px;
+}
+
+.tool-panel button {
+  margin-right: 5px;
+}
+
+.tool-panel button.active {
+  background-color: #ddd;
+}
+
+.pattern-grid-container {
+  display: grid;
+}
+
+.pattern-grid-square {
+  cursor: crosshair;
+}
+
+.pattern-grid-square.hashed {
+  background-color: #d3d3d3; /* Light gray background color */
+  background-image:
+    linear-gradient(45deg, rgba(0, 0, 0, 0.1) 25%, transparent 25%, transparent 50%, rgba(0, 0, 0, 0.1) 50%, rgba(0, 0, 0, 0.1) 75%, transparent 75%, transparent),
+    linear-gradient(-45deg, rgba(0, 0, 0, 0.1) 25%, transparent 25%, transparent 50%, rgba(0, 0, 0, 0.1) 50%, rgba(0, 0, 0, 0.1) 75%, transparent 75%, transparent);
+  background-size: 10px 10px;
+}
