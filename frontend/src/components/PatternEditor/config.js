@@ -19,3 +19,8 @@ export const LINE_STYLES = {
   "regular": [],
   "custom": []
 };
+
+export const OUTLINE_MAPPING = { // Hashed
+  2: '2px solid rgba(0, 0, 0, 1)', // Black
+  3: '1px solid rgba(215, 34, 197, 1)', // Pink
+}

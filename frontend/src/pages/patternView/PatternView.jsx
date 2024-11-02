@@ -9,7 +9,11 @@ const PatternView = () => {  // Additional Goal Make -1 0 and 0 1 and 1 2 and 2 
   const { patternId } = useParams(); // Get the pattern ID from the URL
   const [selectedFile, setSelectedFile] = useState(getLocalStorageProperty('SelectedFile', 'selectedFile') || 'front_torso.npy');
   const [viewMode, setViewMode] = useState(getLocalStorageProperty('ViewMode', 'viewMode') || 'shape'); //'shape', 'color','stitch_type'
-  const [gridData, setGridData] = useState(null);
+  const [gridData, setGridData] = useState({
+    shape: [[]],
+    color: [[]],
+    stitch_type: [[]]
+  });
   const [changes, setChanges] = useState({});
   const [isLoading, setIsLoading] = useState(false);
 
@@ -17,32 +21,39 @@ const PatternView = () => {  // Additional Goal Make -1 0 and 0 1 and 1 2 and 2 
 
   useEffect(() => {
     const fetchData = async () => {
-      if (patternId && selectedFile && viewMode) {
-        console.log("Local Storage Key:", LOCAL_STORAGE_KEY);
-        const savedData = getLocalStorageProperty(LOCAL_STORAGE_KEY, 'gridArray')
-        if (savedData) {
-          try {
-            const parsedData = JSON.parse(savedData);
-            setGridData(parsedData);
-            console.log("Loaded from local storage", savedData);
-            return;
-          } catch (error) {
-            console.error("Failed to parse saved data from local storage", error);
-          }
-        }
-
+      if (patternId && selectedFile) {
         setIsLoading(true);
+        const viewModes = ['shape', 'color', 'stitch_type'];
+        const newGridData = {};
+
         try {
-          const data = await fetchPatternData({
-            patternId,
-            fileName: selectedFile,
-            viewMode,
-          });
-          console.log('Fetched from API', data);
-          setGridData(data);
+          for (const mode of viewModes) {
+            console.log('modes',mode)
+            const localStorageKey = `patternEditor-${patternId}-${selectedFile}-${mode}`;
+            const savedData = getLocalStorageProperty(localStorageKey, 'gridArray');
+
+            if (savedData) {
+              try {
+                newGridData[mode] = JSON.parse(savedData);
+                console.log(`Loaded ${mode} from local storage`, savedData);
+              } catch (error) {
+                console.error(`Failed to parse ${mode} data from local storage`, error);
+              }
+            } else {
+              const fetchedData = await fetchPatternData({
+                patternId,
+                fileName: selectedFile,
+                viewMode: mode,
+              });
+              console.log(`Fetched ${mode} from API`, fetchedData);
+              newGridData[mode] = fetchedData;
+            }
+          }
+
+          setGridData(newGridData);
           setChanges({});
         } catch (error) {
-          console.error('Error fetching pattern file:', error);
+          console.error('Error fetching pattern data:', error);
         } finally {
           setIsLoading(false);
         }
@@ -50,7 +61,8 @@ const PatternView = () => {  // Additional Goal Make -1 0 and 0 1 and 1 2 and 2 
     };
 
     fetchData();
-  }, [patternId, selectedFile, viewMode, LOCAL_STORAGE_KEY]);
+  }, []);
+
 
 
   // Ensure the view mode and selected file updates are captured correctly.
@@ -73,10 +85,10 @@ const PatternView = () => {  // Additional Goal Make -1 0 and 0 1 and 1 2 and 2 
         patternId,
         fileName: selectedFile,
         viewMode,
-        changes,
+        changes: changes[viewMode] || {}
       });
       alert('Changes saved successfully!');
-      setChanges({});
+      setChanges(prevChanges => ({ ...prevChanges, [viewMode]: {} }));
     } catch (error) {
       console.error('Error saving changes:', error);
       alert('Error saving changes.');
@@ -88,7 +100,7 @@ const PatternView = () => {  // Additional Goal Make -1 0 and 0 1 and 1 2 and 2 
         <div className="loading">Loading...</div>
       ) : gridData ? (
         <PatternGrid
-            key={`${selectedFile}-${viewMode}`}
+          key={`${selectedFile}`}
           gridData={gridData}
           selectedFile={selectedFile}
           viewMode={viewMode}
@@ -98,7 +110,7 @@ const PatternView = () => {  // Additional Goal Make -1 0 and 0 1 and 1 2 and 2 
           handleViewModeChange={handleViewModeChange}
         />
       ) : (
-        <p>Loading...</p>
+        <p>Strange Things Are Happening Here</p>
       )}
     </div>
   );
