@@ -103,7 +103,7 @@ class Part:
             self.taper.add_to_array(array)
         else:
             # Define the sides and bottom edge of the torso
-            x_left, y_bottom = 0, self.rows - 1
+            x_left, y_bottom = 0, self.working_rows - 1
             x_right = self.stitches - 1
 
             # Draw left edge

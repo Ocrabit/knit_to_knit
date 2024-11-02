@@ -40,9 +40,12 @@ class Ribbing:
             print("Working_rows,", parent.working_rows, "\nWorking_Height,", parent.working_height)
             print("RPI,", parent.RPI, "\nrows,", parent.rows, "\nHeight,", parent.height)
 
-    def add_to_array(self, array, hem_stitches=0, taper_style=None):  # hem_stitches is width of hem
+    def add_to_array(self, array, hem_stitches=None, taper_style=None):  # hem_stitches is width of hem
         # Calculate hem offset
-        hem_offset = (self.total_stitches - hem_stitches) // 2
+        if hem_stitches is not None:
+            hem_offset = (self.total_stitches - hem_stitches) // 2
+        else:
+            hem_offset = 0
 
         # Starting coordinates
         y_0 = self.working_rows  # Ribbing starts after working rows
@@ -77,5 +80,5 @@ class Ribbing:
         print(f'x_1: {x_1}, y_1: {y_1}')
 
         # Draw the ribbing area
-        tf.draw_area_on_array(array, (x_0, y_0), (x_1, y_1), 2)
+        tf.draw_area_on_array(array, (x_0, y_0), (x_1, y_1))
 

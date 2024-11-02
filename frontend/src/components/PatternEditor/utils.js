@@ -38,3 +38,41 @@ export const getLocalStorageProperty = (key, property) => {
   const parsedData = JSON.parse(existingData);
   return parsedData[property];
 };
+
+export const getRemSize = () => {
+  return parseFloat(getComputedStyle(document.documentElement).fontSize);
+};
+
+export class ColorMapper {
+  constructor() {
+    this.colorToIdMap = {};
+    this.idToColorArray = [];
+    this.colorIdCounter = 0;
+  }
+
+  // Convert color to a unique integer ID
+  getColorId(color) {
+    // If color not yet mapped, add it to the maps
+    if (!(color in this.colorToIdMap)) {
+      this.colorToIdMap[color] = this.colorIdCounter;
+      this.idToColorArray[this.colorIdCounter] = color;
+      this.colorIdCounter++;
+    }
+    return this.colorToIdMap[color];
+  }
+
+  // Retrieve color from the ID
+  getColorFromId(id) {
+    return this.idToColorArray[id];
+  }
+
+  // Map a 2D array of colors to a 2D array of IDs
+  mapColorsToIds(colorArray) {
+    return colorArray.map(row => row.map(color => this.getColorId(color)));
+  }
+
+  // Map a 2D array of IDs back to a 2D array of colors
+  mapIdsToColors(idArray) {
+    return idArray.map(row => row.map(id => this.getColorFromId(id)));
+  }
+}

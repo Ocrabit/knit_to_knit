@@ -174,6 +174,7 @@ const PatternCreate = () => {
                 <input
                     onKeyDown={(evt) => ["e", "E", "+", "-", "/"].includes(evt.key) && evt.preventDefault()}
                     title="Width: inches. Typically 4x4"
+                    onWheel={(e) => e.target.blur()}
                     type="number" min="0" placeholder={"Ex. 4in"} name="width" value={swatchInfo.width}
                     onChange={handleSwatchChange}/>
               </div>
@@ -183,6 +184,7 @@ const PatternCreate = () => {
                 <input
                     onKeyDown={(evt) => ["e", "E", "+", "-", "/"].includes(evt.key) && evt.preventDefault()}
                     title="Height: inches. Typically 4x4"
+                    onWheel={(e) => e.target.blur()}
                     type="number" min="0" placeholder={"Ex. 4in"} name="height" value={swatchInfo.height}
                     onChange={handleSwatchChange}/>
               </div>
@@ -192,6 +194,7 @@ const PatternCreate = () => {
                 <input
                     onKeyDown={(evt) => ["e", "E", "+", "-", "/", "."].includes(evt.key) && evt.preventDefault()}
                     title="Stitches: integer. The width in terms of stitches of the swatch"
+                    onWheel={(e) => e.target.blur()}
                     type="number" min="0" placeholder={"Ex. 20stitches"} name="stitches" value={swatchInfo.stitches}
                     onChange={handleSwatchChange}/>
               </div>
@@ -201,6 +204,7 @@ const PatternCreate = () => {
                 <input
                     onKeyDown={(evt) => ["e", "E", "+", "-", "/", "."].includes(evt.key) && evt.preventDefault()}
                     title="Rows: integer. The height in terms of rows of the swatch"
+                    onWheel={(e) => e.target.blur()}
                     type="number" min="0" placeholder={"Ex. 28rows"} name="rows" value={swatchInfo.rows}
                     onChange={handleSwatchChange}/>
               </div>
@@ -209,6 +213,7 @@ const PatternCreate = () => {
                 <label>Needle Size:</label>
                 <input onKeyDown={(evt) => ["e", "E", "+", "-", "/"].includes(evt.key) && evt.preventDefault()}
                        title="Needle Size: float. The size of the needle in terms of mm"
+                        onWheel={(e) => e.target.blur()}
                        type="number" min="0" placeholder={"Ex. 3.5mm"} name="needle_size" value={swatchInfo.needle_size}
                        onChange={handleSwatchChange}/>
               </div>
@@ -223,6 +228,7 @@ const PatternCreate = () => {
                 <input
                     onKeyDown={(evt) => ["e", "E", "+", "-", "/"].includes(evt.key) && evt.preventDefault()}
                     title="Torso Width: inches. The width of the chest peice of the pattern (shoulder-to-shoulder)"
+                    onWheel={(e) => e.target.blur()}
                     type="number" min="0" placeholder={"Ex. 17in"} name="width" value={torsoDimensions.width}
                     onChange={handleTorsoChange}/>
               </div>
@@ -231,6 +237,7 @@ const PatternCreate = () => {
                 <input
                     onKeyDown={(evt) => ["e", "E", "+", "-", "/"].includes(evt.key) && evt.preventDefault()}
                     title="Torso Height: inches. The length of the chest peice of the pattern (shoulder-to-waist)"
+                    onWheel={(e) => e.target.blur()}
                     type="number" min="0" placeholder={"Ex. 23in"} name="height" value={torsoDimensions.height}
                     onChange={handleTorsoChange}/>
               </div>
@@ -253,6 +260,7 @@ const PatternCreate = () => {
                     <label>Ribbing Size:</label>
                     <select name="ribbing" value={torsoDimensions.ribbing}
                             onChange={handleTorsoChange}>
+                      <option value="">-----</option>
                       <option value="thin">Thin</option>
                       <option value="normal">Normal</option>
                       <option value="thick">Thick</option>
@@ -272,6 +280,7 @@ const PatternCreate = () => {
                     <input
                         onKeyDown={(evt) => ["e", "E", "+", "-", "/"].includes(evt.key) && evt.preventDefault()}
                         title="Torso Taper Offset: inches. How far to go down the side of the torso length before beginning the tapering"
+                        onWheel={(e) => e.target.blur()}
                         type="number" min="0" placeholder={"Ex. 3in"} name="taper_offset"
                         value={torsoDimensions.taper_offset} onChange={handleTorsoChange}/>
                   </div>
@@ -281,6 +290,7 @@ const PatternCreate = () => {
                     <input
                         onKeyDown={(evt) => ["e", "E", "+", "-", "/"].includes(evt.key) && evt.preventDefault()}
                         title="Torso Taper Hem: inches. How wide do you want the torso to taper to (tapered waist size)"
+                        onWheel={(e) => e.target.blur()}
                         type="number" min="0" placeholder={"Ex. 16in"} name="taper_hem"
                         value={torsoDimensions.taper_hem} onChange={handleTorsoChange}/>
                   </div>
@@ -298,6 +308,7 @@ const PatternCreate = () => {
                     <input
                         onKeyDown={(evt) => ["e", "E", "+", "-", "/"].includes(evt.key) && evt.preventDefault()}
                         title="Torso Neck Offset Width: inches. How far into the width of the shoulder do you want to go before beginning your neckline"
+                        onWheel={(e) => e.target.blur()}
                         type="number" min="0" placeholder={"Ex. 6.5in"} name="neck_offset_width"
                         value={torsoDimensions.neck_offset_width}
                         onChange={handleTorsoChange}/>
@@ -308,6 +319,7 @@ const PatternCreate = () => {
                     <input
                         onKeyDown={(evt) => ["e", "E", "+", "-", "/"].includes(evt.key) && evt.preventDefault()}
                         title="Torso Neck Offset Height: inches. The height of how far you want to do you want to go before beginning your neckline"
+                        onWheel={(e) => e.target.blur()}
                         type="number" min="0" placeholder={"Ex. 2.5in"} name="neck_offset_height"
                         value={torsoDimensions.neck_offset_height}
                         onChange={handleTorsoChange}/>
@@ -318,6 +330,7 @@ const PatternCreate = () => {
                     <input
                         onKeyDown={(evt) => ["e", "E", "+", "-", "/"].includes(evt.key) && evt.preventDefault()}
                         title="Torso Neck Depth: inches. The depth of the neckline. How deep you want the neck to be"
+                        onWheel={(e) => e.target.blur()}
                         type="number" min="0" placeholder={"Ex. 3.5in"} name="neck_depth"
                         value={torsoDimensions.neck_depth} onChange={handleTorsoChange}/>
                   </div>
@@ -333,6 +346,7 @@ const PatternCreate = () => {
                 <input
                     onKeyDown={(evt) => ["e", "E", "+", "-", "/"].includes(evt.key) && evt.preventDefault()}
                     title="Sleeve Width: inches. The width of the arm of the pattern (just counts one side. width not circumference)"
+                    onWheel={(e) => e.target.blur()}
                     type="number" min="0" placeholder={"Ex. 6.5in"} name="width" value={sleeveDimensions.width}
                     onChange={handleSleeveChange}/>
               </div>
@@ -341,6 +355,7 @@ const PatternCreate = () => {
                 <input
                     onKeyDown={(evt) => ["e", "E", "+", "-", "/"].includes(evt.key) && evt.preventDefault()}
                     title="Sleeve Height: inches. The height of the arm of the pattern (shoulder-to-wrist)"
+                    onWheel={(e) => e.target.blur()}
                     type="number" min="0" placeholder={"Ex. 18in"} name="height" value={sleeveDimensions.height}
                     onChange={handleSleeveChange}/>
               </div>
@@ -363,6 +378,7 @@ const PatternCreate = () => {
                     <label>Ribbing Size:</label>
                     <select name="ribbing" value={sleeveDimensions.ribbing}
                             onChange={handleSleeveChange} >
+                      <option value="">-----</option>
                       <option value="thin">Thin</option>
                       <option value="normal">Normal</option>
                       <option value="thick">Thick</option>
@@ -382,6 +398,7 @@ const PatternCreate = () => {
                     <input
                         onKeyDown={(evt) => ["e", "E", "+", "-", "/"].includes(evt.key) && evt.preventDefault()}
                         title="Sleeve Taper Offset: inches. How far to go down the side of the sleeve length before beginning the tapering"
+                        onWheel={(e) => e.target.blur()}
                         type="number" min="0" placeholder={"Ex. 1in"} name="taper_offset"
                         value={sleeveDimensions.taper_offset} onChange={handleSleeveChange}/>
                   </div>
@@ -391,6 +408,7 @@ const PatternCreate = () => {
                     <input
                         onKeyDown={(evt) => ["e", "E", "+", "-", "/"].includes(evt.key) && evt.preventDefault()}
                         title="Sleeve Taper Hem: inches. How wide do you want the sleeve to taper to (tapered wrist size)"
+                        onWheel={(e) => e.target.blur()}
                         type="number" min="0" placeholder={"Ex. 5in"} name="taper_hem"
                         value={sleeveDimensions.taper_hem}
                         onChange={handleSleeveChange}/>
@@ -400,6 +418,7 @@ const PatternCreate = () => {
                     <label>Taper Style:</label>
                     <select
                         title="Sleeve Taper Style: selection. This determines if you slope from the top or bottom or both sides of the sleeve"
+                        onWheel={(e) => e.target.blur()}
                         name="taper_style" value={sleeveDimensions.taper_style}
                         onChange={handleSleeveChange}>
                       <option value="both">Both</option>
@@ -421,6 +440,7 @@ const PatternCreate = () => {
                     <input
                         onKeyDown={(evt) => ["e", "E", "+", "-", "/"].includes(evt.key) && evt.preventDefault()}
                         title="Sleeve Neck Offset Width: inches. Put a value in here if you want the neck to cut into the sleeve (I recommend not putting a value here)"
+                        onWheel={(e) => e.target.blur()}
                         type="number" min="0" placeholder={"Ex. 0in"} name="neck_offset_width"
                         value={sleeveDimensions.neck_offset_width}
                         onChange={handleSleeveChange}/>
@@ -431,6 +451,7 @@ const PatternCreate = () => {
                     <input
                         onKeyDown={(evt) => ["e", "E", "+", "-", "/"].includes(evt.key) && evt.preventDefault()}
                         title="Sleeve Neck Offset Width: inches. Put a value in here if you want the neck to cut into the sleeve (I recommend not putting a value here)"
+                        onWheel={(e) => e.target.blur()}
                         type="number" min="0" placeholder={"Ex. 0in"} name="neck_offset_height"
                         value={sleeveDimensions.neck_offset_height}
                         onChange={handleSleeveChange}/>
@@ -441,6 +462,7 @@ const PatternCreate = () => {
                     <input
                         onKeyDown={(evt) => ["e", "E", "+", "-", "/"].includes(evt.key) && evt.preventDefault()}
                         title="Sleeve Neck Offset Width: inches. Put a value in here if you want the neck to cut into the sleeve (I recommend not putting a value here)"
+                        onWheel={(e) => e.target.blur()}
                         type="number" min="0" placeholder={"Ex. 0in"} name="neck_depth"
                         value={sleeveDimensions.neck_depth} onChange={handleSleeveChange}/>
                   </div>

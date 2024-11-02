@@ -106,7 +106,7 @@ def initialize_array(width, height):
     pattern_array = np.zeros((height, width), dtype=array_dtype)
 
     # Set default values
-    pattern_array['shape'] = 0
+    pattern_array['shape'] = 1
     pattern_array['color'] = 0
     pattern_array['stitch_type'] = 0
 
@@ -135,7 +135,7 @@ def bresenham_line(x0, y0, x1, y1):
     return points
 
 
-def draw_path_on_array(array, vertices, value: int = 1):
+def draw_path_on_array(array, vertices, value: int = 2):
     for i in range(len(vertices) - 1):
         # Get the start and end points of the current line segment
         x0, y0 = vertices[i]
@@ -152,7 +152,7 @@ def draw_path_on_array(array, vertices, value: int = 1):
                 print(f"Warning: Point ({x}, {y}) is out of bounds for array with shape {array.shape}")
 
 
-def draw_area_on_array(array, top_left, bottom_right, fill_value=1):
+def draw_area_on_array(array, top_left, bottom_right, fill_value=3):
     """
     Draws a rectangular area on a 2D array using top-left and bottom-right coordinates.
 
@@ -184,21 +184,21 @@ def draw_area_on_array(array, top_left, bottom_right, fill_value=1):
     return array
 
 
-def flood_fill_outside(array, fill_value=-1):
+def flood_fill_outside(array):
     height, width = array.shape[:2]
     visited = np.zeros((height, width), dtype=bool)
     queue = deque()
 
-    # Enqueue all boundary pixels that are zeros
+    # Enqueue all boundary pixels that are ones
     for x in range(width):
-        if array['shape'][0, x] == 0:
+        if array['shape'][0, x] == 1:
             queue.append((0, x))
-        if array['shape'][height - 1, x] == 0:
+        if array['shape'][height - 1, x] == 1:
             queue.append((height - 1, x))
     for y in range(height):
-        if array['shape'][y, 0] == 0:
+        if array['shape'][y, 0] == 1:
             queue.append((y, 0))
-        if array['shape'][y, width - 1] == 0:
+        if array['shape'][y, width - 1] == 1:
             queue.append((y, width - 1))
 
     # Perform BFS flood fill
@@ -207,13 +207,13 @@ def flood_fill_outside(array, fill_value=-1):
         if visited[y, x]:
             continue
         visited[y, x] = True
-        if array['shape'][y, x] == 0:
-            array['shape'][y, x] = fill_value
+        if array['shape'][y, x] == 1:
+            array['shape'][y, x] = 0  # Set the fill value to 0
             # Enqueue neighboring pixels
             for dy, dx in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
                 ny, nx = y + dy, x + dx
                 if 0 <= ny < height and 0 <= nx < width:
-                    if array['shape'][ny, nx] == 0 and not visited[ny, nx]:
+                    if array['shape'][ny, nx] == 1 and not visited[ny, nx]:
                         queue.append((ny, nx))
 
 

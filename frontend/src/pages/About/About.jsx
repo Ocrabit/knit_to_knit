@@ -7,9 +7,8 @@ const AboutUs = () => {
       <div className="about-container">
           <h1>Welcome to Knit To Knit!</h1>
           <p>
-              Hi there! I’m Marco Cassar, the person behind Knit To Knit. My goal with this
-              website and tool is simple: to help you focus on what you love—creating. Knitting can involve a lot of
-              detail and math, which can sometimes get in the way of the joy of crafting. I wanted to create a tool that
+              Knitting can involve a lot of detailed calculations and math, my goal is to create a tool to handle the
+              math allowing you to focus on the creating. Hi I'm Marco, the creator of Knit To Knit. I wanted to create a tool that
               handles the calculations and resizing so you can dive into your designs and bring your ideas to life
               without worry.
           </p>

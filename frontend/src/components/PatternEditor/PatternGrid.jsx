@@ -8,14 +8,17 @@ import PatternGridSquare from "./PatternGridSquare.jsx";
 import {COLOR_MAPPING, LINE_STYLES, NUMBER_MAPPING} from './config';
 import SideToolbar from "./Toolbars/SideToolbar.jsx";
 import TopToolbar from "./Toolbars/TopToolbar.jsx";
-import {debounce, getCSSVariable, updateLocalStorageProperty} from "./utils.js";
+import {debounce, getCSSVariable, updateLocalStorageProperty, ColorMapper} from "./utils.js";
 import useDrawingTools from "../PatternEditor/useDrawingTools.jsx";
 import {throttle} from 'lodash';
+import { unstable_batchedUpdates } from 'react-dom'; // For React 18 or higher
 
 
 const PatternGrid = ({ gridData, handleSave, selectedFile, viewMode, LOCAL_STORAGE_KEY, handleFileChange, handleViewModeChange}) => {
   const grid_pixels = getCSSVariable('--square_var');
   const gap_size = getCSSVariable('--gap_var');
+
+  const LOCAL_STORAGE_ACTIVE_KEY = 'ActiveSelections'
 
   // Other vars
   const rows = gridData.length;
@@ -29,8 +32,16 @@ const PatternGrid = ({ gridData, handleSave, selectedFile, viewMode, LOCAL_STORA
       if (viewMode === 'shape') {
         return gridData.map(row =>
             row.map(value => ({
-              color: COLOR_MAPPING[value] || '#d3d3d3',
-              isHashed: value === -1,
+              color: COLOR_MAPPING[value] ?? '#00000000',
+              isHashed: !value,
+              marking: 'none',
+            }))
+        );
+      } else if (viewMode === 'color') {
+        return gridData.map(row =>
+            row.map(value => ({
+              color: '#ffffff',
+              isHashed: value === 0,
               marking: 'none',
             }))
         );
@@ -41,8 +52,8 @@ const PatternGrid = ({ gridData, handleSave, selectedFile, viewMode, LOCAL_STORA
 
     return gridData.map(row =>
       row.map(value => ({
-        color: COLOR_MAPPING[value] || '#d3d3d3',
-        isHashed: value === -1,
+        color: COLOR_MAPPING[value] ?? '#d3d3d3',
+        isHashed: value === 0,
         marking: 'none',
       }))
     );
@@ -56,37 +67,18 @@ const PatternGrid = ({ gridData, handleSave, selectedFile, viewMode, LOCAL_STORA
     setGrid(initialGrid);
   }, [initialGrid, selectedFile]);
 
-  // const [grid, setGrid] = useState(() => {
-  //   if (gridData) {
-  //     console.log('setting grid', JSON.stringify(gridData));
-  //     try {
-  //       // If viewMode is 'shape', convert numbers back to colors
-  //       if (viewMode === 'shape') {
-  //         return gridData.map(row =>
-  //             row.map(value => ({
-  //               color: COLOR_MAPPING[value] || '#d3d3d3',
-  //               isHashed: value === -1,
-  //               marking: 'none',
-  //             }))
-  //         );
-  //       } else {
-  //         return gridData;
-  //       }
-  //     } catch (error) {
-  //       console.error('Failed to load grid data from localStorage:', error);
-  //       return [];
-  //     }
-  //   }
-  // });
-
   // Variables
-  const {activeMode, drawActive, eraseActive, panActive, handleModeSelect} = useDrawingTools(LOCAL_STORAGE_KEY);
+  const {activeMode, drawActive, eraseActive, panActive, handleModeSelect} = useDrawingTools(LOCAL_STORAGE_ACTIVE_KEY);
   const [isDrawing, setIsDrawing] = useState(false);
   const [selectedColor, setSelectedColor] = useState('#000000');
   const [selectedMarking, setSelectedMarking] = useState('none');
   const [selectedLineStyle, setSelectedLineStyle] = useState('regular');
   const [customLineStyle, setCustomLineStyle] = useState([]);
   const [lineStyleIndex, setLineStyleIndex] = useState(0);
+
+  // Size Vars
+  const [drawSize, setDrawSize] = useState(1);
+  const [eraseSize, setEraseSize] = useState(1);
 
   // Popup Vars
   const [popupType, setPopupType] = useState(''); // Type of popup ('color', 'marker', 'grid', 'save')
@@ -108,7 +100,7 @@ const PatternGrid = ({ gridData, handleSave, selectedFile, viewMode, LOCAL_STORA
   const handleLineStyleChange = (event) => {
     const newLineStyle = event.target.value;
     setSelectedLineStyle(newLineStyle);
-    localStorage.setItem('selectedLineStyle', newLineStyle);
+    updateLocalStorageProperty(LOCAL_STORAGE_ACTIVE_KEY, 'selectedLineStyle', newLineStyle);
     if (newLineStyle !== 'custom') {
       setCustomLineStyle([]); // Clear custom line style if switching back
     }
@@ -124,14 +116,14 @@ const PatternGrid = ({ gridData, handleSave, selectedFile, viewMode, LOCAL_STORA
       return char; // Keep other characters as is
     });
     setCustomLineStyle(mappedCustomLine);
-    localStorage.setItem('customLineStyle', JSON.stringify(mappedCustomLine));
+    updateLocalStorageProperty(LOCAL_STORAGE_ACTIVE_KEY, 'customLineStyle', JSON.stringify(mappedCustomLine))
   };
 
   // Handle color change
   const handleColorChange = (event) => {
     const newColor = event.target.value;
     setSelectedColor(newColor);
-    localStorage.setItem('selectedColor', newColor);
+    updateLocalStorageProperty(LOCAL_STORAGE_ACTIVE_KEY, 'selectedColor', newColor)
     closePopup();
   };
 
@@ -139,7 +131,7 @@ const PatternGrid = ({ gridData, handleSave, selectedFile, viewMode, LOCAL_STORA
   const handleMarkingChange = (event) => {
     const newMarker = event.target.value;
     setSelectedMarking(newMarker);
-    localStorage.setItem('selectedMarker', newMarker);
+    updateLocalStorageProperty(LOCAL_STORAGE_ACTIVE_KEY, 'selectedMarker', newMarker)
     closePopup();
   };
 
@@ -177,7 +169,6 @@ const PatternGrid = ({ gridData, handleSave, selectedFile, viewMode, LOCAL_STORA
 
     const rect = gridContainerRef.current.getBoundingClientRect();
     const scale = transformWrapperRef.current.instance.transformState.scale
-    //console.log('scale', scale)
 
     // Adjust for scaling and panning
     const offsetX = (e.clientX - rect.left) / scale;
@@ -191,65 +182,77 @@ const PatternGrid = ({ gridData, handleSave, selectedFile, viewMode, LOCAL_STORA
 
     // Ensure indices are within bounds
     if (rowIndex >= 0 && rowIndex < rows && colIndex >= 0 && colIndex < columns) {
-      console.log(`Mouse released on grid cell: row ${rowIndex}, column ${colIndex}`);
+      console.log(`Mouse on grid cell: row ${rowIndex}, column ${colIndex}`);
       console.log(`Mouse screen (${e.clientX}, ${e.clientY})`);
       console.log(`Grid Mouse Point (${offsetX}, ${offsetY})`);
       return { rowIndex, colIndex };
     } else {
-      console.log("Mouse released outside the grid boundaries");
+      console.log("Mouse outside the grid boundaries");
       return null;
     }
   };
 
 
   // Function to fill a square with the selected color or eraser
-  const fillSquare = useCallback((rowIndex, colIndex) => {
-    setGrid(prevGrid => {
-      // Create a copy of the grid
-      const newGrid = prevGrid.map(row => [...row]);
+    const fillSquare = useCallback(
+      throttle((rowIndex, colIndex) => {
+        setGrid(prevGrid => {
+          const newGrid = [...prevGrid]; // Shallow copy for immutability
 
-      // Access the specific square
-      const square = newGrid[rowIndex][colIndex];
-      if (!square) return prevGrid;
+          const size = drawActive ? drawSize : eraseActive ? eraseSize : 1;
 
-      const newSquare = { ...square };
+          const halfSize = Math.floor(size / 2);
+          for (let i = -halfSize; i <= halfSize; i++) {
+            for (let j = -halfSize; j <= halfSize; j++) {
+              const newRow = rowIndex + i;
+              const newCol = colIndex + j;
 
-      if (eraseActive) {
-        newSquare.color = '#ffffff';
-        newSquare.marking = 'none';
-      } else if (drawActive) {
-        let marking = '';
-        if (selectedLineStyle === 'regular') {
-          marking = selectedMarking !== 'none' ? selectedMarking : '';
-        } else if (selectedLineStyle === 'custom') {
-          const lineStyleToUse = customLineStyle.length > 0 ? customLineStyle : ['•'];
-          marking = lineStyleToUse[lineStyleIndex % lineStyleToUse.length];
-          setLineStyleIndex(prevIndex => prevIndex + 1);
-        } else {
-          const lineStyleToUse = LINE_STYLES[selectedLineStyle];
-          marking = lineStyleToUse[lineStyleIndex % lineStyleToUse.length];
-          setLineStyleIndex(prevIndex => prevIndex + 1);
-        }
-        newSquare.color = selectedColor;
-        newSquare.marking = marking;
-      }
+              if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < columns) {
+                const square = { ...newGrid[newRow][newCol] }; // Copy cell only if modified
+                if (eraseActive) {
+                  square.color = '#ffffff';
+                  square.marking = 'none';
+                } else if (drawActive) {
+                  let marking = '';
+                  if (selectedLineStyle === 'regular') {
+                    marking = selectedMarking !== 'none' ? selectedMarking : '';
+                  } else if (selectedLineStyle === 'custom') {
+                    const lineStyleToUse = customLineStyle.length > 0 ? customLineStyle : ['•'];
+                    marking = lineStyleToUse[lineStyleIndex % lineStyleToUse.length];
+                    setLineStyleIndex(prevIndex => prevIndex + 1);
+                  } else {
+                    const lineStyleToUse = LINE_STYLES[selectedLineStyle];
+                    marking = lineStyleToUse[lineStyleIndex % lineStyleToUse.length];
+                    setLineStyleIndex(prevIndex => prevIndex + 1);
+                  }
+                  square.color = selectedColor;
+                  square.marking = marking;
+                }
+                newGrid[newRow][newCol] = square; // Modify only the affected cell
+              }
+            }
+          }
 
-      newGrid[rowIndex][colIndex] = newSquare;
+          unstable_batchedUpdates(() => saveGridToLocalStorage(newGrid));
+          return newGrid;
+        });
+      }, 16), // Throttle to 50ms intervals
+      [
+        activeMode,
+        selectedColor,
+        selectedMarking,
+        selectedLineStyle,
+        customLineStyle,
+        lineStyleIndex,
+        eraseActive,
+        drawActive,
+        rows,
+        columns,
+        eraseSize,
+        drawSize
+      ]
+    );
 
-      saveGridToLocalStorage(newGrid);
-      return newGrid;
-    });
-  }, [
-    activeMode,
-    selectedColor,
-    selectedMarking,
-    selectedLineStyle,
-    customLineStyle,
-    lineStyleIndex,
-    LINE_STYLES,
-    eraseActive,
-    drawActive,
-  ]);
 
   const saveGridToLocalStorage = useCallback(
     debounce((newGrid) => {
@@ -259,7 +262,7 @@ const PatternGrid = ({ gridData, handleSave, selectedFile, viewMode, LOCAL_STORA
         if (viewMode === 'shape') {
           //console.log('viewMode is shape');
           gridData = newGrid.map(row =>
-              row.map(cell => NUMBER_MAPPING[cell.color] ?? -1)
+              row.map(cell => NUMBER_MAPPING[cell.color] ?? 0)
           );
         } else {
           // For other view modes, save the grid as is
@@ -284,7 +287,7 @@ const PatternGrid = ({ gridData, handleSave, selectedFile, viewMode, LOCAL_STORA
 
   // Set previous selections from storage.
   useEffect(() => {
-    const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+    const savedData = localStorage.getItem(LOCAL_STORAGE_ACTIVE_KEY);
     if (savedData) {
       try {
         const parsedData = JSON.parse(savedData);
@@ -296,6 +299,8 @@ const PatternGrid = ({ gridData, handleSave, selectedFile, viewMode, LOCAL_STORA
           savedMode,
           savedLineStyle,
           savedCustomLineStyle,
+          savedDrawSize,
+          savedEraseSize,
         } = parsedData;
 
         if (savedMarker) {
@@ -315,10 +320,12 @@ const PatternGrid = ({ gridData, handleSave, selectedFile, viewMode, LOCAL_STORA
         if (savedCustomLineStyle) {
           setCustomLineStyle(JSON.parse(savedCustomLineStyle)); // Parse and set the custom line style
         }
-        // if (savedRows && savedColumns) {
-        //   setRows(parseInt(savedRows, 10));
-        //   setColumns(parseInt(savedColumns, 10));
-        // }
+        if (savedDrawSize) {
+          setDrawSize(JSON.parse(savedDrawSize));
+        }
+        if (savedEraseSize) {
+          setEraseSize(JSON.parse(savedEraseSize));
+        }
       } catch (error) {
         console.error("Failed to load grid data from localStorage:", error);
       }
@@ -348,10 +355,10 @@ const PatternGrid = ({ gridData, handleSave, selectedFile, viewMode, LOCAL_STORA
         setMinScale(newMinScale);
 
         // Debugging logs for clarity
-        console.log('Wrapper Dimensions:', wrapperWidth, wrapperHeight);
-        console.log('Grid Dimensions:', gridWidth, gridHeight);
-        console.log('Scale Factors:', scaleWidth, scaleHeight);
-        console.log('New Min Scale:', newMinScale);
+        // console.log('Wrapper Dimensions:', wrapperWidth, wrapperHeight);
+        // console.log('Grid Dimensions:', gridWidth, gridHeight);
+        // console.log('Scale Factors:', scaleWidth, scaleHeight);
+        // console.log('New Min Scale:', newMinScale);
       }
     };
 
@@ -424,12 +431,16 @@ const PatternGrid = ({ gridData, handleSave, selectedFile, viewMode, LOCAL_STORA
               handleViewModeChange={handleViewModeChange}
               handleFileChange={handleFileChange}
             />
-
             <SideToolbar
                 activeMode={activeMode}
                 handleModeSelect={handleModeSelect}
                 openPopup={openPopup}
                 viewMode={viewMode}
+                setDrawSize={setDrawSize}
+                setEraseSize={setEraseSize}
+                drawSize={drawSize}
+                eraseSize={eraseSize}
+                LOCAL_STORAGE_ACTIVE_KEY={LOCAL_STORAGE_ACTIVE_KEY}
             />
 
             {/* Popups */}

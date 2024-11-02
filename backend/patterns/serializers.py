@@ -53,7 +53,7 @@ class SleeveProjectionSerializer(serializers.ModelSerializer):
         """
         instance = self.Meta.model()
         data = set_default_if_none(instance, data)
-        print('Torso Null Fixed Data:', data, flush=True)
+        print('Sleeve Null Fixed Data:', data, flush=True)
         return super().to_internal_value(data)
 
 

@@ -57,6 +57,15 @@
   border-radius: 4px;
   width: auto;
 }
+/* disables scrolling on number inputs */
+.input-group input[type='number'] {
+  -moz-appearance: textfield;
+}
+.input-group input[type="number"]::-webkit-outer-spin-button,
+.input-group input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
 
 .input-checkbox-group {
   font-size: 25px;
@@ -80,6 +89,7 @@
   border-radius: 2px;
   width: auto;
 }
+
 
 /* Add some styles for responsiveness */
 @media (max-width: 768px) {

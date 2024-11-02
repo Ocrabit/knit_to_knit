@@ -3,7 +3,7 @@ import React from 'react';
 const PatternGridSquare = React.memo(({ square, viewMode }) => {
   return (
     <div
-      className="gridSquare"
+      className={`gridSquare ${square.isHashed ? 'hashed' : ''}`}
       style={{ backgroundColor: square.color }}
     >
       {viewMode === 'stitch_type' && square.marking !== 'none' && (

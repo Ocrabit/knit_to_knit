@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { updateLocalStorageProperty } from "./utils.js";
 
-const useDrawingTools = (LOCAL_STORAGE_KEY) => {
+const useDrawingTools = (LOCAL_STORAGE_ACTIVE_KEYS) => {
   const [activeMode, setActiveMode] = useState(null);
   const [drawActive, setDrawActive] = useState(false);
   const [eraseActive, setEraseActive] = useState(false);
@@ -10,7 +10,7 @@ const useDrawingTools = (LOCAL_STORAGE_KEY) => {
 
   const handleModeSelect = (modeId) => {
     setActiveMode(modeId);
-    updateLocalStorageProperty(LOCAL_STORAGE_KEY, 'savedMode', modeId);
+    updateLocalStorageProperty(LOCAL_STORAGE_ACTIVE_KEYS, 'savedMode', modeId);
 
     if (modeId === 'draw') {
       setDrawActive(true);
