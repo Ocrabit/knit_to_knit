@@ -5,13 +5,14 @@ import PropTypes from 'prop-types';
 import './PatternGrid.css';
 import {TransformComponent, TransformWrapper} from 'react-zoom-pan-pinch';
 import PatternGridSquare from "./PatternGridSquare.jsx";
-import {COLOR_MAPPING, LINE_STYLES, OUTLINE_MAPPING, NUMBER_MAPPING} from './config';
+import {COLOR_MAPPING, LINE_STYLES, VALUE_OUTLINE_MAPPING, COLOR_OUTLINE_MAPPING, NUMBER_MAPPING} from './config';
 import SideToolbar from "./Toolbars/SideToolbar.jsx";
 import TopToolbar from "./Toolbars/TopToolbar.jsx";
 import {debounce, getCSSVariable, updateLocalStorageProperty, ColorMapper} from "./utils.js";
 import useDrawingTools from "../PatternEditor/useDrawingTools.jsx";
 import {throttle} from 'lodash';
-import { unstable_batchedUpdates } from 'react-dom'; // For React 18 or higher
+import { unstable_batchedUpdates } from 'react-dom';
+import { updateShapeGrid, updateColorGrid, updateStitchTypeGrid } from "./gridUpdater.jsx";
 
 
 const PatternGrid = ({ gridData, handleSave, selectedFile, viewMode, LOCAL_STORAGE_KEY, handleFileChange, handleViewModeChange}) => {
@@ -19,59 +20,79 @@ const PatternGrid = ({ gridData, handleSave, selectedFile, viewMode, LOCAL_STORA
   const gap_size = getCSSVariable('--gap_var');
 
   const LOCAL_STORAGE_ACTIVE_KEY = 'ActiveSelections'
-
-  // Other vars
-  console.log(gridData)
   const rows = gridData.shape.length;
   const columns = gridData.shape[0].length;
 
-  // Initialize grid state based on the gridData prop
-  const initialGrid = useMemo(() => {
-    const colorData = gridData['color']
-    const shapeData = gridData['shape'];
-    if (!shapeData) return [];
+  // Initialize the initial shape grid with `useMemo`
+  const initialShapeGrid = useMemo(() =>
+    gridData.shape.map(row =>
+      row.map(value => ({
+        color: COLOR_MAPPING[value] ?? '#00000000',
+        isHashed: !value,
+        marking: 'none',
+        outline: 'none'
+      }))
+    ),
+    [gridData.shape]
+  );
+  const [shapeGrid, setShapeGrid] = useState(initialShapeGrid);
 
-    try {
-      if (viewMode === 'shape') {
-        return shapeData.map(row =>
-            row.map(value => ({
-              color: COLOR_MAPPING[value] ?? '#00000000',
-              isHashed: !value,
-              marking: 'none',
-              outline: 'none'
-            }))
-        );
-      } else if (viewMode === 'color') {
-        return shapeData.map((row, rowIndex) =>
-            row.map(((value, colIndex) => ({
-              color: value ? (colorData[rowIndex]?.[colIndex] ?? '#ffffff') : '#00000000', //temp
-              isHashed: !value,
-              marking: 'none',
-              outline: OUTLINE_MAPPING[value] ?? 'none',
-            }))
-        ));
-      }
-    } catch (error) {
-      console.error('Failed to load grid data:', error);
-    }
-  }, [gridData, viewMode]);
+  // Memoized function to calculate the color grid based on the shape grid
+  const calculateColorGrid = useCallback(() => {
+    return shapeGrid.map((row, rowIndex) =>
+      row.map((square, colIndex) => ({
+        color: square.isHashed ? '#00000000' : '#ffffff',
+        isHashed: square.isHashed,
+        marking: 'none',
+        outline: COLOR_OUTLINE_MAPPING[square.color] ?? 'none'
+      }))
+    );
+  }, [shapeGrid]);
 
-  // State for `grid` that can be individually updated
-  const [grid, setGrid] = useState(initialGrid);
+  // Memoized function to calculate the stitch type grid based on the shape grid
+  const calculateStitchTypeGrid = useCallback(() => {
+    return shapeGrid.map(row =>
+      row.map(() => ({
+        // Replace with actual stitch type properties or defaults
+        stitchType: 'default',
+        marking: 'none',
+        outline: 'none'
+      }))
+    );
+  }, [shapeGrid]);
 
-  // Re-sync `grid` with `initialGrid` only when `gridData`, `viewMode`, or `selectedFile` change
+  // Initialize colorGrid and stitchTypeGrid with calculated values
+  const [colorGrid, setColorGrid] = useState(calculateColorGrid);
+  const [stitchTypeGrid, setStitchTypeGrid] = useState(calculateStitchTypeGrid);
+
+  // Effect to update colorGrid only when switching to 'color' view mode
   useEffect(() => {
-    setGrid(initialGrid);
-  }, [initialGrid, selectedFile]);
+    if (viewMode === 'color') {
+      setColorGrid(calculateColorGrid());
+    }
+  }, [viewMode, calculateColorGrid]);
+
+  // Effect to update stitchTypeGrid only when switching to 'stitch_type' view mode
+  useEffect(() => {
+    if (viewMode === 'stitch_type') {
+      setStitchTypeGrid(calculateStitchTypeGrid());
+    }
+  }, [viewMode, calculateStitchTypeGrid]);
+
+  // Memoized active grid selector
+  const activeGrid = useMemo(() => {
+    if (viewMode === 'shape') return shapeGrid;
+    if (viewMode === 'color') return colorGrid;
+    return stitchTypeGrid;
+  }, [viewMode, shapeGrid, colorGrid, stitchTypeGrid]);
+
+
 
   // Variables
   const {activeMode, drawActive, eraseActive, panActive, handleModeSelect} = useDrawingTools(LOCAL_STORAGE_ACTIVE_KEY);
   const [isDrawing, setIsDrawing] = useState(false);
   const [selectedColor, setSelectedColor] = useState('#000000');
   const [selectedMarking, setSelectedMarking] = useState('none');
-  const [selectedLineStyle, setSelectedLineStyle] = useState('regular');
-  const [customLineStyle, setCustomLineStyle] = useState([]);
-  const [lineStyleIndex, setLineStyleIndex] = useState(0);
 
   // Size Vars
   const [drawSize, setDrawSize] = useState(1);
@@ -92,28 +113,6 @@ const PatternGrid = ({ gridData, handleSave, selectedFile, viewMode, LOCAL_STORA
 
   const closePopup = () => {
     setPopupType('');
-  };
-  // Handle lineStyle selection and conversion
-  const handleLineStyleChange = (event) => {
-    const newLineStyle = event.target.value;
-    setSelectedLineStyle(newLineStyle);
-    updateLocalStorageProperty(LOCAL_STORAGE_ACTIVE_KEY, 'selectedLineStyle', newLineStyle);
-    if (newLineStyle !== 'custom') {
-      setCustomLineStyle([]); // Clear custom line style if switching back
-    }
-
-    setLineStyleIndex(0);
-  };
-
-  // Handle Custom Inputs
-  const handleCustomLineStyleInput = (input) => {
-    const mappedCustomLine = input.split(' ').map(char => {
-      if (char === '.') return '•'; // Map '.' to dot
-      if (char.toLowerCase() === 'x') return '✕'; // Map 'x' to cross
-      return char; // Keep other characters as is
-    });
-    setCustomLineStyle(mappedCustomLine);
-    updateLocalStorageProperty(LOCAL_STORAGE_ACTIVE_KEY, 'customLineStyle', JSON.stringify(mappedCustomLine))
   };
 
   // Handle color change
@@ -141,7 +140,6 @@ const PatternGrid = ({ gridData, handleSave, selectedFile, viewMode, LOCAL_STORA
       fillSquare(indices.rowIndex, indices.colIndex);
     }
   };
-
 
   // Handle mouse enter event (continue drawing on new squares)
   const handleMouseMove = useCallback(
@@ -190,57 +188,35 @@ const PatternGrid = ({ gridData, handleSave, selectedFile, viewMode, LOCAL_STORA
 
 
   // Function to fill a square with the selected color or eraser
-    const fillSquare = useCallback(
-      throttle((rowIndex, colIndex) => {
-        setGrid(prevGrid => {
-          const newGrid = [...prevGrid];
-          const size = drawActive ? drawSize : eraseActive ? eraseSize : 1;
-          const halfSize = Math.floor(size / 2);
-          for (let i = -halfSize; i <= halfSize; i++) {
-            for (let j = -halfSize; j <= halfSize; j++) {
-              const newRow = rowIndex + i;
-              const newCol = colIndex + j;
-              if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < columns) {
-                const square = { ...newGrid[newRow][newCol] };
-                if (eraseActive) {
-                  square.color = viewMode === 'shape' ? '#00000000': '#ffffff';
-                  square.marking = 'none';
-                } else if (drawActive) {
-                  // let marking = '';
-                  // if (selectedLineStyle === 'regular') {
-                  //   marking = selectedMarking !== 'none' ? selectedMarking : '';
-                  // } else if (selectedLineStyle === 'custom') {
-                  //   const lineStyleToUse = customLineStyle.length > 0 ? customLineStyle : ['•'];
-                  //   marking = lineStyleToUse[lineStyleIndex % lineStyleToUse.length];
-                  //   setLineStyleIndex(prevIndex => prevIndex + 1);
-                  // } else {
-                  //   const lineStyleToUse = LINE_STYLES[selectedLineStyle];
-                  //   marking = lineStyleToUse[lineStyleIndex % lineStyleToUse.length];
-                  //   setLineStyleIndex(prevIndex => prevIndex + 1);
-                  // }
-                  square.color = selectedColor;
-                  square.marking = selectedMarking;
-                }
-                newGrid[newRow][newCol] = square;
-              }
-            }
-          }
-          unstable_batchedUpdates(() => saveGridToLocalStorage(newGrid));
-          return newGrid;
-        });
-      }, 16), // Throttle to 50ms intervals
-      [
-        drawActive,
-        eraseActive,
-        selectedColor,
-        selectedMarking,
-        //selectedLineStyle,
-        //customLineStyle,
-        //lineStyleIndex,
-        drawSize,
-        eraseSize
-      ]
-    );
+  const fillSquare = useCallback(
+    throttle((rowIndex, colIndex) => {
+      const size = drawActive ? drawSize : eraseActive ? eraseSize : 1;
+
+      // Determine the correct update function based on the view mode
+      const updateFunction =
+        viewMode === 'shape' ? updateShapeGrid : viewMode === 'color' ? updateColorGrid : updateStitchTypeGrid;
+
+      const setGridFunction =
+        viewMode === 'shape' ? setShapeGrid : viewMode === 'color' ? setColorGrid : setStitchTypeGrid;
+
+      // Call the appropriate grid update function and set state
+      setGridFunction(prevGrid => {
+        const updatedGrid = updateFunction(
+          prevGrid,
+          rowIndex,
+          colIndex,
+          size,
+          drawActive,
+          eraseActive,
+          selectedColor,
+          selectedMarking
+        );
+        unstable_batchedUpdates(() => saveGridToLocalStorage(updatedGrid));
+        return updatedGrid;
+      });
+    }, 16),
+    [drawActive, eraseActive, selectedColor, selectedMarking, drawSize, eraseSize, viewMode]
+  );
 
   // Definitely broken with the 3d array, make an array for each.
   const saveGridToLocalStorage = useCallback(
@@ -283,8 +259,6 @@ const PatternGrid = ({ gridData, handleSave, selectedFile, viewMode, LOCAL_STORA
           savedMarker,
           savedColor,
           savedMode,
-          savedLineStyle,
-          savedCustomLineStyle,
           savedDrawSize,
           savedEraseSize,
         } = parsedData;
@@ -300,12 +274,6 @@ const PatternGrid = ({ gridData, handleSave, selectedFile, viewMode, LOCAL_STORA
         } else {
           handleModeSelect('draw'); // Default to draw if no mode is saved
         }
-        if (savedLineStyle) {
-          setSelectedLineStyle(savedLineStyle); // Set the saved line style
-        }
-        if (savedCustomLineStyle) {
-          setCustomLineStyle(JSON.parse(savedCustomLineStyle)); // Parse and set the custom line style
-        }
         if (savedDrawSize) {
           setDrawSize(JSON.parse(savedDrawSize));
         }
@@ -319,6 +287,7 @@ const PatternGrid = ({ gridData, handleSave, selectedFile, viewMode, LOCAL_STORA
   }, []);
 
   const [minScale, setMinScale] = useState(1);
+  const minScaleRef = useRef(1);
 
   useLayoutEffect(() => {
     const updateMinScale = () => {
@@ -328,7 +297,12 @@ const PatternGrid = ({ gridData, handleSave, selectedFile, viewMode, LOCAL_STORA
         const scaleWidth = wrapperRect.width / gridRect.width;
         const scaleHeight = wrapperRect.height / gridRect.height;
         const newMinScale = Math.min(scaleWidth, scaleHeight, 1);
-        setMinScale(newMinScale);
+
+        // Only update if minScale has changed
+        if (newMinScale !== minScaleRef.current) {
+          minScaleRef.current = newMinScale;
+          setMinScale(newMinScale);
+        }
       }
     };
     updateMinScale();
@@ -366,7 +340,7 @@ const PatternGrid = ({ gridData, handleSave, selectedFile, viewMode, LOCAL_STORA
               id="canvasContainer"
               onContextMenu={(e) => e.preventDefault()} // Prevent right-click menu
           >
-            <TransformComponent>
+            <TransformComponent key={{viewMode}}>
               <div id="gridContainer" ref={gridContainerRef}
                    style={{
                       gridTemplateColumns: `repeat(${columns}, ${grid_pixels}px)`,
@@ -375,7 +349,7 @@ const PatternGrid = ({ gridData, handleSave, selectedFile, viewMode, LOCAL_STORA
                    onMouseDown={handleMouseDown}
                    onMouseMove={handleMouseMove}
               >
-                {grid.map((row, rowIndex) =>
+                {activeGrid.map((row, rowIndex) =>
                   row.map((square, colIndex) => (
                     <PatternGridSquare
                         key={`${rowIndex}-${colIndex}`}
@@ -410,33 +384,6 @@ const PatternGrid = ({ gridData, handleSave, selectedFile, viewMode, LOCAL_STORA
           />
 
           {/* Popups */}
-          {popupType === 'line_style' && (
-              <div className="popup">
-                <h3>Select Line Style</h3>
-                <select value={selectedLineStyle} onChange={handleLineStyleChange}>
-                  <option value="regular">None</option>
-                  <option value="dot-cross">• ✕</option>
-                  <option value="dot-2cross">• ✕ ✕</option>
-                  <option value="custom">Custom</option>
-                </select>
-
-                {selectedLineStyle === 'custom' && (
-                    <div>
-                      <h4>Define Custom Line Style</h4>
-                      <input
-                          type="text"
-                          value={customLineStyle.join(' ')}
-                          onChange={(e) => handleCustomLineStyleInput(e.target.value)}
-                          placeholder="Enter '.' for Dot and 'x' for Cross"
-                      />
-                      <button onClick={closePopup}>Use</button>
-                    </div>
-                )}
-                {selectedLineStyle !== 'custom' && (
-                    <button onClick={closePopup}>Close</button>
-                )}
-              </div>
-          )}
           {popupType === 'color' && (
               <div className="popup">
                 <h3>Select Color</h3>

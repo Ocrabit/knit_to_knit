@@ -20,7 +20,12 @@ export const LINE_STYLES = {
   "custom": []
 };
 
-export const OUTLINE_MAPPING = { // Hashed
-  2: '1px solid rgba(0, 0, 0, 1)', // Black
+export const VALUE_OUTLINE_MAPPING = { // Hashed
+  2: '2px solid rgba(0, 0, 0, 1)', // Black
   3: '1px solid rgba(215, 34, 197, 1)', // Pink
+}
+
+export const COLOR_OUTLINE_MAPPING = { // Hashed
+  '#000000': '2px solid rgba(0, 0, 0, 1)', // Black
+  '#d722c5': '1px solid rgba(215, 34, 197, 1)', // Pink
 }
