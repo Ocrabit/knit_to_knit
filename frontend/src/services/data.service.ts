@@ -82,16 +82,16 @@ export const compilePattern = async (data: CompilePatternData) => {
   }
 };
 
-export const fetchPatternData = async ({patternId, fileName, viewMode}: { patternId: any, fileName: any, viewMode: any }) => {
+export const fetchPatternDataByMode = async ({patternId, fileName, viewMode}: { patternId: any, fileName: any, viewMode: any }) => {
   try {
-  console.log("fetchPatternData called with:", { patternId, fileName, viewMode });
+  //console.log("fetchPatternDataByMode called with:", { patternId, fileName, viewMode });
 
   const csrfToken = getCsrfToken();
   const encodedFileName = encodeURIComponent(fileName);
   const encodedViewMode = encodeURIComponent(viewMode);
 
   const response = await axiosInstance.get(
-      `/patterns/${encodeURIComponent(patternId)}/file`, // Encode dynamic segment
+      `/patterns/${encodeURIComponent(patternId)}/file-mode`, // Encode dynamic segment
       {
         headers: {
           'X-CSRFToken': csrfToken,
@@ -104,6 +104,32 @@ export const fetchPatternData = async ({patternId, fileName, viewMode}: { patter
     );
 
   return response.data.grid_data; // Ensure you return the right data
+  } catch (error: any) {
+    console.error('API error:', error);
+    throw new Error(error.response?.data?.message || 'Failed to fetch pattern file.');
+  }
+};
+
+export const fetchPatternDataByFile = async ({patternId, fileName}: { patternId: any, fileName: any }) => {
+  try {
+  console.log("fetchPatternDataByFile called with:", { patternId, fileName });
+
+  const csrfToken = getCsrfToken();
+  const encodedFileName = encodeURIComponent(fileName);
+
+  const response = await axiosInstance.get(
+      `/patterns/${encodeURIComponent(patternId)}/file`, // Encode dynamic segment
+      {
+        headers: {
+          'X-CSRFToken': csrfToken,
+        },
+        params: {
+          file_name: encodedFileName, // Encode query parameter
+        },
+      }
+    );
+
+  return response.data.file_data;
   } catch (error: any) {
     console.error('API error:', error);
     throw new Error(error.response?.data?.message || 'Failed to fetch pattern file.');
@@ -124,6 +150,9 @@ export const savePatternChanges = async ({
   changes
 }: SavePatternChangesParams): Promise<any> => {
   try {
+    console.log("savePatternChanges called with:", { patternId, fileName, viewMode, changes });
+
+
     const csrfToken = getCsrfToken();
 
     // Use encodeURIComponent for dynamic segments in the URL if needed
@@ -134,7 +163,7 @@ export const savePatternChanges = async ({
       {
         file_name: encodeURIComponent(fileName), // Encode in the body, though not strictly necessary for JSON fields
         view_mode: encodeURIComponent(viewMode), // Encode in the body, though not strictly necessary for JSON fields
-        changes: changes,
+        changed_data: changes,
       },
       {
         headers: {

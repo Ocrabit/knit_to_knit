@@ -44,10 +44,13 @@ export const getRemSize = () => {
 };
 
 export class ColorMapper {
-  constructor() {
-    this.colorToIdMap = {};
-    this.idToColorArray = [];
-    this.colorIdCounter = 0;
+  constructor(LOCAL_STORAGE_KEY) {
+    const storedColorToIdMap = JSON.parse(getLocalStorageProperty(LOCAL_STORAGE_KEY, 'colorToIdMap') || '{}');
+    const storedIdToColorArray = JSON.parse(getLocalStorageProperty(LOCAL_STORAGE_KEY, 'idToColorArray') || '[]');
+    this.colorToIdMap = storedColorToIdMap;
+    this.idToColorArray = storedIdToColorArray;
+    this.colorIdCounter = storedIdToColorArray.length;
+    this.LOCAL_STORAGE_KEY = LOCAL_STORAGE_KEY;
   }
 
   // Convert color to a unique integer ID
@@ -57,6 +60,8 @@ export class ColorMapper {
       this.colorToIdMap[color] = this.colorIdCounter;
       this.idToColorArray[this.colorIdCounter] = color;
       this.colorIdCounter++;
+
+      this.saveMappingsToLocalStorage();
     }
     return this.colorToIdMap[color];
   }
@@ -73,6 +78,13 @@ export class ColorMapper {
 
   // Map a 2D array of IDs back to a 2D array of colors
   mapIdsToColors(idArray) {
+    console.log('Id Array', idArray);
+    console.log('idToColorArray', this.idToColorArray);
     return idArray.map(row => row.map(id => this.getColorFromId(id)));
+  }
+
+  saveMappingsToLocalStorage() {
+    updateLocalStorageProperty(this.LOCAL_STORAGE_KEY,'colorToIdMap', JSON.stringify(this.colorToIdMap))
+    updateLocalStorageProperty(this.LOCAL_STORAGE_KEY,'idToColorArray', JSON.stringify(this.idToColorArray))
   }
 }

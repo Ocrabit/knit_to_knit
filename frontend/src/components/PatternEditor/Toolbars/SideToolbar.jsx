@@ -31,7 +31,70 @@ const WritePopup = ({name, size, set, position}) => (
     </div>
   )
 
-const SideToolbar = ({ activeMode, viewMode, LOCAL_STORAGE_ACTIVE_KEY, handleModeSelect, openPopup, setDrawSize, setEraseSize, drawSize, eraseSize}) => {
+const OnDrawPopup = ({size, setSize, position, viewMode, recentColors, handleColorRecentChange}) => (
+    <div className="tool-popup" style={{top: position.top, left: position.left}}>
+      <label htmlFor={`draw-size`}>Size:</label>
+      <select
+          id={`draw-size`}
+          value={size}
+          onChange={(e) => setSize('draw', e.target.value)}
+      >
+        <option value="1">1</option>
+        <option value="3">3</option>
+        <option value="5">5</option>
+      </select>
+      {viewMode === 'shape' && (
+          <div className="color-options">
+            <button
+                onClick={() => handleColorRecentChange('#ffffff')}
+                className="color-button white"
+            />
+            <button
+                onClick={() => handleColorRecentChange('#000000')}
+                className="color-button black"
+            />
+            <button
+                onClick={() => handleColorRecentChange('#d722c5')}
+                className="color-button pink"
+            />
+          </div>
+      )}
+      {viewMode === 'color' && (
+        <div className="color-options">
+          {recentColors.map((color, index) => (
+            <button
+              className="color-button"
+              key={index}
+              onClick={() => handleColorRecentChange(color)}
+              style={{ backgroundColor: color }}
+            />
+          ))}
+          <div className="color-input-wrapper">
+            <input
+              type="color"
+              onChange={(e) => handleColorRecentChange(e.target.value)}
+              title="Choose custom color"
+              className="custom-color-input"
+            />
+            <img
+              src={Icons.color_icon}
+              alt="Color Icon"
+              draggable="false"
+              className="color-icon"
+            />
+          </div>
+        </div>
+      )}
+
+      {viewMode === 'stitch_type'}
+
+    </div>
+)
+
+const SideToolbar = ({
+                       activeMode, viewMode, LOCAL_STORAGE_ACTIVE_KEY, handleSave,
+                       handleModeSelect, handleColorChange, setDrawSize, setEraseSize, drawSize, eraseSize
+                     }) => {
   const [recentColors, setRecentColors] = useState(['#000000', '#FFFFFF', '#FF69B4']); // Initialize with default colors
 
   // Popup Handling
@@ -61,7 +124,10 @@ const SideToolbar = ({ activeMode, viewMode, LOCAL_STORAGE_ACTIVE_KEY, handleMod
   };
 
   // Handle color selection logic for color viewMode
-  const handleColorChange = (color) => {
+  const handleColorRecentChange = (color) => {
+    console.log('recent Color change', color)
+    handleColorChange(color);
+
     setRecentColors((prevColors) => {
       const updatedColors = [color, ...prevColors.filter(c => c !== color)];
       return updatedColors.slice(0, 3); // Keep only the last 3 colors
@@ -108,37 +174,24 @@ const SideToolbar = ({ activeMode, viewMode, LOCAL_STORAGE_ACTIVE_KEY, handleMod
     // Reset button
     buttons.push(<ResetButton key="reset" />);
 
-    // Conditional color and line style buttons
-    if (viewMode === 'shape' || viewMode === 'color' || viewMode === 'stitch_type') {
-      buttons.push(
-        <button
-          key="color"
-          className="side-toolbar-button"
-          onClick={() => openPopup('color')}
-        >
-          <img src={Icons.color_icon} alt="Color Icon" draggable="false"/>
-        </button>
-      );
-    }
+    // if (viewMode === 'stitch_type') {
+    //   buttons.push(
+    //     <button
+    //       key="line_style"
+    //       className="side-toolbar-button"
+    //       onClick={() => openPopup('line_style')}
+    //     >
+    //       <img src={Icons.line_style_icon} alt="Line Style Icon" draggable="false"/>
+    //     </button>
+    //   );
+    // }
 
-    if (viewMode === 'stitch_type') {
-      buttons.push(
-        <button
-          key="line_style"
-          className="side-toolbar-button"
-          onClick={() => openPopup('line_style')}
-        >
-          <img src={Icons.line_style_icon} alt="Line Style Icon" draggable="false"/>
-        </button>
-      );
-    }
-
-    // Save button
+    // Save button | Fix this
     buttons.push(
       <button
         key="save"
         className="side-toolbar-button"
-        onClick={() => openPopup('save')}
+        onClick={() => handleSave()}
       >
         <img src={Icons.download_icon} alt="Download Icon" draggable="false"/>
       </button>
@@ -152,7 +205,7 @@ const SideToolbar = ({ activeMode, viewMode, LOCAL_STORAGE_ACTIVE_KEY, handleMod
       {renderButtons()}
 
       {/* Show DrawSizePopup if draw mode is active */}
-      {activeMode === 'draw' && <WritePopup name={activeMode} size={drawSize} set={onSizeChange} position={popupPosition} />}
+      {activeMode === 'draw' && <OnDrawPopup size={drawSize} setSize={onSizeChange} position={popupPosition} viewMode={viewMode} recentColors={recentColors} handleColorRecentChange={handleColorRecentChange} />}
 
       {/* Show EraseSizePopup if erase mode is active */}
       {activeMode === 'erase' && <WritePopup name={activeMode} size={eraseSize} set={onSizeChange} position={popupPosition} />}

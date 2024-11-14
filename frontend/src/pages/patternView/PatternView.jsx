@@ -1,9 +1,13 @@
 // PatternView.jsx
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { fetchPatternData, savePatternChanges } from '../../services/data.service';
+import React, {useEffect, useRef, useState} from 'react';
+import {useParams} from 'react-router-dom';
+import {fetchPatternDataByFile, fetchPatternDataByMode, savePatternChanges} from '../../services/data.service';
 import PatternGrid from "../../components/PatternEditor/PatternGrid.jsx";
-import {getLocalStorageProperty, updateLocalStorageProperty} from "../../components/PatternEditor/utils.js";
+import {
+  ColorMapper,
+  getLocalStorageProperty,
+  updateLocalStorageProperty
+} from "../../components/PatternEditor/utils.js";
 
 const PatternView = () => {  // Additional Goal Make -1 0 and 0 1 and 1 2 and 2 3
   const { patternId } = useParams(); // Get the pattern ID from the URL
@@ -14,10 +18,16 @@ const PatternView = () => {  // Additional Goal Make -1 0 and 0 1 and 1 2 and 2 
     color: [[]],
     stitch_type: [[]]
   });
-  const [changes, setChanges] = useState({});
+  const [changes, setChanges] = useState({
+      shape: [[]],
+    color: [[]],
+    stitch_type: [[]]
+  });
   const [isLoading, setIsLoading] = useState(false);
 
   const LOCAL_STORAGE_KEY = `patternEditor-${patternId}-${selectedFile}-${viewMode}`;
+  const colorMapper = useRef(new ColorMapper(LOCAL_STORAGE_KEY)).current;
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -25,33 +35,55 @@ const PatternView = () => {  // Additional Goal Make -1 0 and 0 1 and 1 2 and 2 
         setIsLoading(true);
         const viewModes = ['shape', 'color', 'stitch_type'];
         const newGridData = {};
+        const newChanges = {};
+
+        const noneLocalDataExists = viewModes.every((mode) => {
+          const localStorageKey = `patternEditor-${patternId}-${selectedFile}-${mode}`;
+          const localStorageData = getLocalStorageProperty(localStorageKey, 'gridArray');
+          return localStorageData == null;
+        });
 
         try {
-          for (const mode of viewModes) {
-            console.log('modes',mode)
-            const localStorageKey = `patternEditor-${patternId}-${selectedFile}-${mode}`;
-            const savedData = getLocalStorageProperty(localStorageKey, 'gridArray');
+          if (noneLocalDataExists) {
+            console.log('No data current exists in local storage, fetching all data from api');
+            const fetchedData = await fetchPatternDataByFile({
+              patternId,
+              fileName: selectedFile
+            });
+            console.log('Fetched data', fetchedData);
+            for (const mode of viewModes) {
+              newGridData[mode] = fetchedData[mode]
+              newChanges[mode] = {};
+            }
+          } else {
+            for (const mode of viewModes) {
+              console.log('modes', mode)
+              const localStorageKey = `patternEditor-${patternId}-${selectedFile}-${mode}`;
+              const savedData = getLocalStorageProperty(localStorageKey, 'gridArray');
 
-            if (savedData) {
-              try {
-                newGridData[mode] = JSON.parse(savedData);
-                console.log(`Loaded ${mode} from local storage`, savedData);
-              } catch (error) {
-                console.error(`Failed to parse ${mode} data from local storage`, error);
+              if (savedData) {
+                try {
+                  const parsedData = JSON.parse(savedData);
+                  newGridData[mode] = parsedData;
+                  newChanges[mode] = parsedData;
+                  //console.log(`Loaded ${mode} from local storage`, savedData);
+                } catch (error) {
+                  console.error(`Failed to parse ${mode} data from local storage`, error);
+                }
+              } else {
+                //console.log(`Fetched ${mode} from API`, fetchedData);
+                newGridData[mode] = await fetchPatternDataByMode({
+                  patternId,
+                  fileName: selectedFile,
+                  viewMode: mode,
+                });
+                newChanges[mode] = {};
               }
-            } else {
-              const fetchedData = await fetchPatternData({
-                patternId,
-                fileName: selectedFile,
-                viewMode: mode,
-              });
-              console.log(`Fetched ${mode} from API`, fetchedData);
-              newGridData[mode] = fetchedData;
             }
           }
 
           setGridData(newGridData);
-          setChanges({});
+          setChanges(newChanges);
         } catch (error) {
           console.error('Error fetching pattern data:', error);
         } finally {
@@ -61,7 +93,7 @@ const PatternView = () => {  // Additional Goal Make -1 0 and 0 1 and 1 2 and 2 
     };
 
     fetchData();
-  }, []);
+  }, [selectedFile, patternId, setGridData]);
 
 
 
@@ -94,6 +126,16 @@ const PatternView = () => {  // Additional Goal Make -1 0 and 0 1 and 1 2 and 2 
       alert('Error saving changes.');
     }
   };
+
+  const handleGridUpdate = (updatedGridData) => {
+    setChanges((prevChanges) => ({
+      ...prevChanges,
+      [viewMode]: updatedGridData,
+    }));
+    console.log('handleGridUpdate called...', updatedGridData);
+  };
+
+
   return (
     <div className="pattern-view">
       {isLoading ? (
@@ -108,6 +150,8 @@ const PatternView = () => {  // Additional Goal Make -1 0 and 0 1 and 1 2 and 2 
           LOCAL_STORAGE_KEY={LOCAL_STORAGE_KEY}
           handleFileChange={handleFileChange}
           handleViewModeChange={handleViewModeChange}
+          colorMapper={colorMapper}
+          onGridUpdate={handleGridUpdate}
         />
       ) : (
         <p>Strange Things Are Happening Here</p>

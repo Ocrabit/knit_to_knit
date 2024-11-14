@@ -15,9 +15,13 @@ import { unstable_batchedUpdates } from 'react-dom';
 import { updateShapeGrid, updateColorGrid, updateStitchTypeGrid } from "./gridUpdater.jsx";
 
 
-const PatternGrid = ({ gridData, handleSave, selectedFile, viewMode, LOCAL_STORAGE_KEY, handleFileChange, handleViewModeChange}) => {
+const PatternGrid = ({ gridData, handleSave, selectedFile, viewMode, LOCAL_STORAGE_KEY, handleFileChange, handleViewModeChange, colorMapper, onGridUpdate}) => {
   const grid_pixels = getCSSVariable('--square_var');
   const gap_size = getCSSVariable('--gap_var');
+
+useEffect(() => {
+  console.log("PatternGrid received gridData:", gridData);
+}, [gridData]);
 
   const LOCAL_STORAGE_ACTIVE_KEY = 'ActiveSelections'
   const rows = gridData.shape.length;
@@ -41,6 +45,18 @@ const PatternGrid = ({ gridData, handleSave, selectedFile, viewMode, LOCAL_STORA
   const calculateColorGrid = useCallback(() => {
     return shapeGrid.map((row, rowIndex) =>
       row.map((square, colIndex) => ({
+        color: square.isHashed ? '#00000000' : colorMapper.getColorFromId(gridData.color?.[rowIndex]?.[colIndex]) || '#ffffff',
+        isHashed: square.isHashed,
+        marking: 'none',
+        outline: COLOR_OUTLINE_MAPPING[square.color] ?? 'none'
+      }))
+    );
+  }, [shapeGrid, colorMapper, gridData.color]);
+
+  // Memoized function to calculate the stitch type grid based on the shape grid
+  const calculateStitchTypeGrid = useCallback(() => {
+    return shapeGrid.map(row =>
+      row.map((square, colIndex) => ({
         color: square.isHashed ? '#00000000' : '#ffffff',
         isHashed: square.isHashed,
         marking: 'none',
@@ -49,35 +65,22 @@ const PatternGrid = ({ gridData, handleSave, selectedFile, viewMode, LOCAL_STORA
     );
   }, [shapeGrid]);
 
-  // Memoized function to calculate the stitch type grid based on the shape grid
-  const calculateStitchTypeGrid = useCallback(() => {
-    return shapeGrid.map(row =>
-      row.map(() => ({
-        // Replace with actual stitch type properties or defaults
-        stitchType: 'default',
-        marking: 'none',
-        outline: 'none'
-      }))
-    );
-  }, [shapeGrid]);
-
   // Initialize colorGrid and stitchTypeGrid with calculated values
   const [colorGrid, setColorGrid] = useState(calculateColorGrid);
   const [stitchTypeGrid, setStitchTypeGrid] = useState(calculateStitchTypeGrid);
 
-  // Effect to update colorGrid only when switching to 'color' view mode
   useEffect(() => {
-    if (viewMode === 'color') {
+    if (viewMode === 'color' && gridData.color && shapeGrid.length > 0) {
       setColorGrid(calculateColorGrid());
     }
-  }, [viewMode, calculateColorGrid]);
+  }, [viewMode, gridData.color, shapeGrid, calculateColorGrid]);
 
   // Effect to update stitchTypeGrid only when switching to 'stitch_type' view mode
   useEffect(() => {
-    if (viewMode === 'stitch_type') {
+    if (viewMode === 'stitch_type' && gridData.stitch_type && shapeGrid.length > 0) {
       setStitchTypeGrid(calculateStitchTypeGrid());
     }
-  }, [viewMode, calculateStitchTypeGrid]);
+  }, [viewMode, gridData.stitch_type, shapeGrid, calculateStitchTypeGrid]);
 
   // Memoized active grid selector
   const activeGrid = useMemo(() => {
@@ -85,8 +88,6 @@ const PatternGrid = ({ gridData, handleSave, selectedFile, viewMode, LOCAL_STORA
     if (viewMode === 'color') return colorGrid;
     return stitchTypeGrid;
   }, [viewMode, shapeGrid, colorGrid, stitchTypeGrid]);
-
-
 
   // Variables
   const {activeMode, drawActive, eraseActive, panActive, handleModeSelect} = useDrawingTools(LOCAL_STORAGE_ACTIVE_KEY);
@@ -106,21 +107,11 @@ const PatternGrid = ({ gridData, handleSave, selectedFile, viewMode, LOCAL_STORA
   const canvasContainerRef = useRef(null);
   const transformWrapperRef = useRef(null);
 
-  // Function to handle popups
-  const openPopup = (type) => {
-    setPopupType(type);
-  };
-
-  const closePopup = () => {
-    setPopupType('');
-  };
-
   // Handle color change
-  const handleColorChange = (event) => {
-    const newColor = event.target.value;
+  const handleColorChange = (color) => {
+    const newColor = color;
     setSelectedColor(newColor);
     updateLocalStorageProperty(LOCAL_STORAGE_ACTIVE_KEY, 'selectedColor', newColor)
-    closePopup();
   };
 
   // Handle marking change
@@ -128,7 +119,6 @@ const PatternGrid = ({ gridData, handleSave, selectedFile, viewMode, LOCAL_STORA
     const newMarker = event.target.value;
     setSelectedMarking(newMarker);
     updateLocalStorageProperty(LOCAL_STORAGE_ACTIVE_KEY, 'selectedMarker', newMarker)
-    closePopup();
   };
 
   // Handle mouse down event (start drawing)
@@ -226,16 +216,16 @@ const PatternGrid = ({ gridData, handleSave, selectedFile, viewMode, LOCAL_STORA
         let dataToSave;
         if (viewMode === 'shape') {
           dataToSave = newGrid.map(row => row.map(cell => NUMBER_MAPPING[cell.color] ?? 0));
-        } else {
-          // For other view modes, save the grid as is
-          console.log('viewMode is other, this will be implemented later');
+        } else if (viewMode === 'color') {
+          dataToSave = colorMapper.mapColorsToIds(newGrid.map(row => row.map(cell => cell.color)));
         }
         updateLocalStorageProperty(LOCAL_STORAGE_KEY, 'gridArray', JSON.stringify(dataToSave));
+        onGridUpdate(dataToSave);
       } catch (error) {
         console.error('Failed to save grid data to localStorage:', error);
       }
-    }, 5000),
-    [LOCAL_STORAGE_KEY] //is there a way to call save when they leave page or reload?
+    }, 1000),
+    [LOCAL_STORAGE_KEY, viewMode, onGridUpdate]
   );
 
   // Handle global mouse up to stop drawing
@@ -287,7 +277,6 @@ const PatternGrid = ({ gridData, handleSave, selectedFile, viewMode, LOCAL_STORA
   }, []);
 
   const [minScale, setMinScale] = useState(1);
-  const minScaleRef = useRef(1);
 
   useLayoutEffect(() => {
     const updateMinScale = () => {
@@ -298,11 +287,7 @@ const PatternGrid = ({ gridData, handleSave, selectedFile, viewMode, LOCAL_STORA
         const scaleHeight = wrapperRect.height / gridRect.height;
         const newMinScale = Math.min(scaleWidth, scaleHeight, 1);
 
-        // Only update if minScale has changed
-        if (newMinScale !== minScaleRef.current) {
-          minScaleRef.current = newMinScale;
-          setMinScale(newMinScale);
-        }
+        setMinScale(newMinScale);
       }
     };
     updateMinScale();
@@ -321,6 +306,10 @@ const PatternGrid = ({ gridData, handleSave, selectedFile, viewMode, LOCAL_STORA
   useEffect(() => {
     console.log('Active Mode:', activeMode);
   }, [activeMode]);
+
+  if (!gridData.shape || !shapeGrid.length) {
+    return <div>Loading pattern...</div>;
+  }
 
   return (
       <div className="pattern-editor">
@@ -374,8 +363,9 @@ const PatternGrid = ({ gridData, handleSave, selectedFile, viewMode, LOCAL_STORA
           <SideToolbar
               activeMode={activeMode}
               handleModeSelect={handleModeSelect}
-              openPopup={openPopup}
+              handleColorChange={handleColorChange}
               viewMode={viewMode}
+              handleSave={handleSave}
               setDrawSize={setDrawSize}
               setEraseSize={setEraseSize}
               drawSize={drawSize}

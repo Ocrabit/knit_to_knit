@@ -68,16 +68,12 @@ def compile_pattern(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def get_pattern_data(request, pattern_id):
+def get_pattern_mode_data(request, pattern_id):
     file_name = request.query_params.get('file_name')
     view_mode = request.query_params.get('view_mode')
-    #print('file_name', file_name, flush=True)
-    #print('view_mode', view_mode, flush=True)
-    #print('pattern_id', pattern_id, flush=True)
 
     # Construct the file path
     file_path = os.path.join(settings.MEDIA_ROOT, f'patterns/pattern_{pattern_id}/{file_name}')
-    #print('file_path', file_path, flush=True)
 
     if not os.path.exists(file_path):
         print('Error: File does not exist at the specified path.', flush=True)
@@ -110,32 +106,80 @@ def get_pattern_data(request, pattern_id):
         return Response({'error': str(e)}, status=500)
 
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_pattern_file_data(request, pattern_id):
+    file_name = request.query_params.get('file_name')
+
+    # Construct the file path
+    file_path = os.path.join(settings.MEDIA_ROOT, f'patterns/pattern_{pattern_id}/{file_name}')
+    print('file path is' , file_path, flush=True)
+
+    if not os.path.exists(file_path):
+        print('Error: File does not exist at the specified path.', flush=True)
+        return Response({'error': f'File not found: {file_path}'}, status=404)
+
+    try:
+        # Load the .npy file as a 2D array
+        npy_data = np.load(file_path, allow_pickle=True)
+        print('Loaded npy_data:', npy_data, flush=True)
+
+        response_data = {
+            'shape': [],
+            'color': [],
+            'stitch_type': []
+        }
+
+        for row in npy_data:
+            shape_row = []
+            color_row = []
+            stitch_type_row = []
+
+            for cell in row:
+                shape_row.append(int(cell[0]))
+                color_row.append(int(cell[1]))
+                stitch_type_row.append(int(cell[2]))
+
+            response_data['shape'].append(shape_row)
+            response_data['color'].append(color_row)
+            response_data['stitch_type'].append(stitch_type_row)
+
+        print('Extracted grid_data:', response_data, flush=True)
+        return Response({'file_data': response_data})
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
+
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def save_pattern_changes(request, pattern_id):
+    print('Save Pattern Changes View is called', flush=True)
     file_name = request.data.get('file_name')
     view_mode = request.data.get('view_mode')
-    changes = request.data.get('changes')
+    new_grid_data = request.data.get('changed_data')
+
+    if not new_grid_data:
+        print('no grid data')
+        return Response({'error': 'No grid data provided'}, status=400)
 
     file_path = os.path.join(settings.MEDIA_ROOT, f'patterns/pattern_{pattern_id}/{file_name}')
+    print('file path is', file_path, flush=True)
 
     try:
+        # Convert the received grid data to a NumPy array
+        new_grid_array = np.array(new_grid_data)
+        print('new grid converted', new_grid_array, flush=True)
         # Load the .npy file
-        npy_data = np.load(file_path, allow_pickle=True).item()
-        grid_data = npy_data[view_mode]
+        npy_data = np.load(file_path, allow_pickle=True)
+        print('loaded npy file',npy_data, flush=True)
 
-        # Apply the changes
-        for index_str, value in changes.items():
-            index = int(index_str)
-            # Calculate row and column from index
-            rows, cols = grid_data.shape
-            row = index // cols
-            col = index % cols
-            grid_data[row][col] = value
+        # Update the grid data
+        npy_data[view_mode] = new_grid_array
+        print('saved new grid to npy view mode', npy_data[view_mode], flush=True)
 
         # Save the updated .npy file
-        npy_data[view_mode] = grid_data
         np.save(file_path, npy_data)
+        print('finished saving file')
 
         return Response({'status': 'success'})
     except Exception as e:

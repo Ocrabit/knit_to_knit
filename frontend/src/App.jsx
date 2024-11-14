@@ -24,6 +24,7 @@ import Dashboard from "./pages/dashboard/Dashboard.jsx";
 import PatternCreate from "./pages/patternCreate/PatternCreate.jsx";
 import PatternView from "./pages/patternView/PatternView.jsx";
 import AccountSettings from "./pages/AccountSettings/AccountSettings.jsx";
+import StepGuide from "./components/StepGuide/StepGuide.jsx";
 
 
 class App extends React.Component {
@@ -114,6 +115,7 @@ class App extends React.Component {
                         <Route path="/account-settings" element={<AccountSettings/>}/>
                         <Route path="/create-design" element={<Create/>}/>
                         <Route path="/patterns" element={<Patterns/>}/>
+                        <Route path="/stepguide/:patternId" element={<StepGuide/>}/>
                       </Routes>
                     </div>
                   </div>
