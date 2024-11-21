@@ -254,6 +254,9 @@ def save_pattern(array, file_path):
 def load_pattern(file_path):
     return np.load(file_path)
 
+def render_snapshot(piece_data):
+    pass # Make this when you get a chance
+
 
 class KnittingConversions:
     def __init__(self, SPI, RPI, needle_size=None):
