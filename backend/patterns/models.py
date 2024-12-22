@@ -11,22 +11,16 @@ from django.contrib.auth.models import User
 
 # Create your models here.
 def sweater_upload_path(instance, filename):
-    return f'patterns/pattern_{instance.sweater.id}/{instance.piece_type}.npy'
+    return f'patterns/pattern_{instance.id}/{filename}'
 
 
 class Pattern(models.Model):
     """
-    Description:
-        Represents a knitting pattern that is associated with a single torso projection.
-        Each user can have multiple patterns.
-    Fields:
-        - author: ForeignKey to associate the pattern with a User.
-        - name: CharField to store the name of the pattern.
-        - content: TextField to store the pattern details.
-        - created_on: DateTimeField to track when the pattern was created.
-        - edited_on: DateTimeField to track when the pattern was last edited.
-        - torso_projection: OneToOneField linking to a Torso_Projection.
+    Base model for all knitting patterns.
     """
+    PATTERN_TYPE_CHOICES = [
+        ('separated', 'Separated Sweater Pieces'),
+    ]
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -37,6 +31,11 @@ class Pattern(models.Model):
     created_on = models.DateTimeField(auto_now_add=True)
     edited_on = models.DateTimeField(auto_now=True)
     thumbnail = models.ImageField(null=True, blank=True)
+    pattern_type = models.CharField(
+        max_length=10,
+        choices=PATTERN_TYPE_CHOICES,
+        default='separated',
+    )
 
     def delete(self, *args, **kwargs):
         folder_path = os.path.join(settings.MEDIA_ROOT, f'patterns/pattern_{self.id}/')
@@ -50,49 +49,30 @@ class Pattern(models.Model):
         return self.name
 
 
-class Sweater(Pattern):
-    SWEATER_TYPE_CHOICES = [
-        ('basic', 'Basic'),
-        ('mable', 'Mable'),
-        ('dipper', 'Dipper'),
-    ]
-
-    sweater_type = models.CharField(
-        max_length=7,
-        choices=SWEATER_TYPE_CHOICES,
-        default='basic'
-    )
-
-
-class SweaterPiece(models.Model):
-    SWEATER_PIECE_CHOICES = [
-        ('front_torso', 'Front Torso'),
-        ('back_torso', 'Back Torso'),
-        ('left_sleeve', 'Left Sleeve'),
-        ('right_sleeve', 'Right Sleeve'),
-    ]
-    sweater = models.ForeignKey(Sweater, related_name='pieces', on_delete=models.CASCADE)
-    piece_type = models.CharField(max_length=20, choices=SWEATER_PIECE_CHOICES)
+class SeparatedSweater(Pattern):
+    """
+    Represents a separated sweater pattern, inheriting from Pattern.
+    Each instance has its own data file.
+    """
     sweater_file = models.FileField(upload_to=sweater_upload_path)
-    edited_on = models.DateTimeField(auto_now=True)
 
-    def __str__(self):
-        return f"{self.sweater.name} - {self.get_piece_type_display()}"
+    def save(self, *args, **kwargs):
+        self.pattern_type = 'separated'  # Ensure the pattern_type is set correctly
+        # Handle old file deletion if updating
+        if self.pk:
+            old_instance = SeparatedSweater.objects.get(pk=self.pk)
+            if old_instance.sweater_file != self.sweater_file:
+                old_instance.sweater_file.delete(save=False)
+        super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
         # Delete the file associated with this instance
         if self.sweater_file:
             self.sweater_file.delete(save=False)
-        super(SweaterPiece, self).delete(*args, **kwargs)
+        super().delete(*args, **kwargs)
 
-    def save(self, *args, **kwargs):
-        try:
-            old_instance = SweaterPiece.objects.get(pk=self.pk)
-            if old_instance.sweater_file != self.sweater_file:
-                old_instance.sweater_file.delete(save=False)
-        except SweaterPiece.DoesNotExist:
-            pass  # The instance is new
-        super(SweaterPiece, self).save(*args, **kwargs)
+    def __str__(self):
+        return f"Separated Sweater: {self.name}"
 
 
 class Swatch(models.Model):
@@ -146,7 +126,7 @@ class Torso_Projection(models.Model):
         ('normal', 'Normal'),
         ('thick', 'Thick'),
     ]
-    pattern = models.OneToOneField(Pattern, on_delete=models.CASCADE, related_name='torso_projection')
+    sweater = models.OneToOneField(SeparatedSweater, on_delete=models.CASCADE, related_name='torso_projection')
     width = models.FloatField()
     height = models.FloatField()
     ribbing = models.CharField(
@@ -192,7 +172,7 @@ class Sleeve_Projection(models.Model):
         ('bottom', 'Bottom'),
     ]
 
-    pattern = models.OneToOneField(Pattern, on_delete=models.CASCADE, related_name='sleeve_projection')
+    sweater = models.OneToOneField(SeparatedSweater, on_delete=models.CASCADE, related_name='sleeve_projection')
     width = models.FloatField()
     height = models.FloatField()
     ribbing = models.CharField(

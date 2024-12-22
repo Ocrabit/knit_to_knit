@@ -15,7 +15,7 @@ const Dashboard = () => {
 
   const fetchRecentPatterns = async () => {
     try {
-      const response = await axiosInstance.get('/api/user-patterns/');
+      const response = await axiosInstance.get('/user-patterns/');
       setRecentPatterns(response.data.slice(0, 3)); // Fetch the 3 most recent patterns
     } catch (error) {
       console.error('Error fetching recent patterns:', error);
@@ -24,7 +24,7 @@ const Dashboard = () => {
 
   const fetchRecentGrids = async () => {
     try {
-      const response = await fetch('/api/user-grid-designs'); // Adjust API endpoint
+      const response = await fetch('/user-grid-designs'); // Adjust API endpoint
       const data = await response.json();
       setRecentGrids(data.slice(0, 3)); // Fetch the 3 most recent grid designs
     } catch (error) {

@@ -120,6 +120,7 @@ class Part:
 
         return array
 
+    # Should be broken in this version
     def save_as_array(self, path, part_name):
         if self.debug_mode:
             print(f'\nInitializing array of size {self.stitches}x{self.rows}')
@@ -167,7 +168,7 @@ class Part:
         # Fill outside to -1
         tf.flood_fill_outside(array)
 
-        # Save the array as a text file
+        # Save the array as npz
         file_path = path / part_name
         tf.save_pattern(array, file_path)
         print(f'Array saved to {file_path}')

@@ -53,6 +53,28 @@ export class ColorMapper {
     this.LOCAL_STORAGE_KEY = LOCAL_STORAGE_KEY;
   }
 
+  updateValuesFromBackend(mapped_colors) {
+    //console.log('Received Color Map from Backend:', mapped_colors);
+
+    // Overwrite idToColorArray with the provided data
+    this.idToColorArray = mapped_colors.idToColorArray || [];
+
+    // Recreate colorToIdMap  based on new update
+    this.colorToIdMap = {};
+    this.idToColorArray.forEach((color, id) => {
+      this.colorToIdMap[color] = id;
+    });
+
+    // Update the colorIdCounter to reflect the new data
+    this.colorIdCounter = this.idToColorArray.length;
+
+    // Save the updated mappings to local storage
+    this.saveMappingsToLocalStorage();
+
+    //console.log('Updated idToColorArray:', this.idToColorArray);
+    //console.log('Updated colorToIdMap:', this.colorToIdMap);
+  }
+
   // Convert color to a unique integer ID
   getColorId(color) {
     // If color not yet mapped, add it to the maps
@@ -84,7 +106,7 @@ export class ColorMapper {
   }
 
   saveMappingsToLocalStorage() {
-    updateLocalStorageProperty(this.LOCAL_STORAGE_KEY,'colorToIdMap', JSON.stringify(this.colorToIdMap))
-    updateLocalStorageProperty(this.LOCAL_STORAGE_KEY,'idToColorArray', JSON.stringify(this.idToColorArray))
+    updateLocalStorageProperty(this.LOCAL_STORAGE_KEY,'colorToIdMap', JSON.stringify(this.colorToIdMap));
+    updateLocalStorageProperty(this.LOCAL_STORAGE_KEY,'idToColorArray', JSON.stringify(this.idToColorArray));
   }
 }

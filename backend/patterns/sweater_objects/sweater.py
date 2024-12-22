@@ -47,6 +47,7 @@ class Sweater:
         # Once they have been saved load images
         return front_torso_array, back_torso_array, left_sleeve_array, right_sleeve_array
 
+    # Depreciated
     def save_arrays(self):
         save_name = f'pattern_{self.sweater_id}'
         media_root = settings.MEDIA_ROOT
@@ -61,6 +62,7 @@ class Sweater:
         # Once they have been saved load images
         self.sweater_image(front_path, back_path, left_path, right_path)
 
+    # Depreciated
     def sweater_image(self, front_path, back_path, left_path, right_path):
         front_image = tf.array_path_to_image(front_path)
         back_image = tf.array_path_to_image(back_path)
@@ -87,5 +89,6 @@ class Sweater:
             'right_sleeve': str(right_image_path.relative_to(settings.MEDIA_ROOT)),
         }
 
+    #Depreciated
     def get_image_paths(self):
         return self.image_paths

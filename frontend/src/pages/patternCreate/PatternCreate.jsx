@@ -10,7 +10,7 @@ const PatternCreate = () => {
   const [pattern, setPattern] = useState({
     name: '',
     content: '',
-    sweater_type: 'Basic',
+    pattern_type: 'SeparatedSweater',
   });
   const [swatchInfo, setSwatchInfo] = useState({ width: '', height: '', stitches: '', rows: '', needle_size: '' });
   const [torsoDimensions, setTorsoDimensions] = useState({ width: '', height: '', ribbing: '', taper_offset: '', taper_hem: '', neck_offset_width: '', neck_offset_height: '', neck_depth: '' });
@@ -62,7 +62,7 @@ const PatternCreate = () => {
 
     // Check for invalid values (e.g., NaN) or missing fields
     if (
-      !pattern.name || !pattern.content || !pattern.sweater_type ||
+      !pattern.name || !pattern.content || !pattern.pattern_type ||
       isNaN(swatchWidth) || isNaN(swatchHeight) || isNaN(swatchStitches) || isNaN(swatchRows) || isNaN(swatchNeedleSize) ||
       isNaN(torsoWidth) || isNaN(torsoHeight) ||
       isNaN(sleeveWidth) || isNaN(sleeveHeight)
@@ -99,7 +99,6 @@ const PatternCreate = () => {
       // Call the TypeScript service function to compile the pattern
       const response = await compilePattern(data);
       alert(response.message || "Pattern compiled successfully!");
-      console.log(response.pattern);
       const patternId = response.pattern_id;
 
       navigate(`/pattern-view/${patternId}`);
@@ -153,13 +152,11 @@ const PatternCreate = () => {
                 {/* Sweater Type Selection */}
                 <label>Sweater Type:</label>
                 <select
-                    value={pattern.sweater_type}
-                    onChange={(e) => setPattern({...pattern, sweater_type: e.target.value})}
+                    value={pattern.pattern_type}
+                    onChange={(e) => setPattern({...pattern, pattern_type: e.target.value})}
                 >
                   <option value="">Select</option>
-                  <option value="basic">Basic</option>
-                  <option value="dipper">Dipper</option>
-                  <option value="mable">Mable</option>
+                  <option value="SeparatedSweater">Separated Sweater</option>
                 </select>
               </div>
             </div>

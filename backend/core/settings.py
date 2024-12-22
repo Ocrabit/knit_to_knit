@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 import os
 from pathlib import Path
+import environ
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -19,13 +21,22 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
+# Initialize environment variables
+env = environ.Env()
+os.environ.get("NAME")
+# Debug: print loaded environment variables
+
+
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-gkg$#(f67feic&asykx2*j50190bd=bc+47k7r_73w_)(b-qc7"
+SECRET_KEY = env('SECRET_KEY', default='NOT_FOUND')
+
+if SECRET_KEY == 'NOT_FOUND':
+    raise ValueError("SECRET_KEY environment variable is missing!")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env.bool('DEBUG', default=False)
 
-ALLOWED_HOSTS = ['localhost']
+ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS', default=['knittoknit.com'])
 
 
 # Application definition
@@ -37,9 +48,9 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
-    "corsheaders",
-    "authentication",  # our app
+    "authentication",
     "patterns",
+    'django_extensions',
 ]
 
 REST_FRAMEWORK = {
@@ -54,7 +65,6 @@ REST_FRAMEWORK = {
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "corsheaders.middleware.CorsMiddleware",  # dev port handle
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -62,29 +72,89 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',  # Use 'verbose' if you want more detailed logs
+        },
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': 'app.log',
+            'formatter': 'verbose',
+        },
+        'error_file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': 'error.log',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file', 'error_file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'django.request': {
+            'handlers': ['console', 'error_file'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'django.security.csrf': {
+            'handlers': ['console', 'error_file'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'patterns': {
+            'handlers': ['console', 'file', 'error_file'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+    },
+}
+LOGGING['loggers']['django']['level'] = 'INFO'
+
+# Security Settings
 SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SECURE = False  # Activate in production
-SESSION_COOKIE_SAMESITE = 'Lax'  # Enforce CSRF protection, modify based on your needs
-# ^^ Find out more soon
+SESSION_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_SAMESITE = 'Lax'
 
-
-# CSRF token settings
 CSRF_COOKIE_HTTPONLY = False
-CSRF_COOKIE_SECURE = False  # Set to true in production
+CSRF_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SAMESITE = 'Lax'
-# ^^ Ask Why I need these
 
-CORS_ALLOWED_ORIGINS = [
-  "http://localhost:5173",
-    'http://localhost:8000',
-]
+# Secure SSL redirect
+SECURE_SSL_REDIRECT = not DEBUG
+# Secure HSTS
+SECURE_HSTS_SECONDS = 31536000  # 1 Year
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
 
-CSRF_TRUSTED_ORIGINS = [
-    'http://localhost:5173',
-    'http://localhost:8000',
-]
+# CSRF settings
+CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=["https://knittoknit.com"])
 
-CORS_ALLOW_CREDENTIALS = True
+if DEBUG:
+    SESSION_COOKIE_DOMAIN = 'localhost'
+else:
+    SESSION_COOKIE_DOMAIN = 'knittoknit.com'
+
+#print("ALLOWED_HOSTS:", ALLOWED_HOSTS)
+#print("CSRF_TRUSTED_ORIGINS:", CSRF_TRUSTED_ORIGINS)
 
 ROOT_URLCONF = "core.urls"
 
@@ -110,19 +180,17 @@ WSGI_APPLICATION = "core.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-POSTGRES_HOST = os.environ.get('POSTGRES_HOST', default="")
-POSTGRES_DB = os.environ.get('POSTGRES_DB', default="")
-POSTGRES_USER = os.environ.get('POSTGRES_USER', default="")
-POSTGRES_PASSWORD = os.environ.get('POSTGRES_PASSWORD', default="")
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': POSTGRES_DB,
-        'USER': POSTGRES_USER,
-        'PASSWORD': POSTGRES_PASSWORD,
-        'HOST': POSTGRES_HOST,
-        'PORT': 5432,
+        'NAME': env('POSTGRES_DB'),
+        'USER': env('POSTGRES_USER'),
+        'PASSWORD': env('POSTGRES_PASSWORD'),
+        'HOST': env('POSTGRES_HOST'),
+        'PORT': '5432',
+        'OPTIONS': {
+            'sslmode': 'require',  # Enforces SSL
+        },
     }
 }
 
@@ -162,7 +230,13 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = "static/"
-STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),  # Includes react_dist in the static directory
+]
+#print("STATIC_URL:", STATIC_URL)
+#print("STATIC_ROOT:", STATIC_ROOT)
+#print("STATICFILES_DIRS:", STATICFILES_DIRS)
 
 MEDIA_URL = '/media/'  # Public URL at the browser
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # Directory where uploaded media is saved.
@@ -171,3 +245,6 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # Directory where uploaded media i
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Secure Proxy SSL Header
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')

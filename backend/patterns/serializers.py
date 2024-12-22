@@ -1,7 +1,7 @@
 from re import fullmatch
 
 from rest_framework import serializers
-from .models import Pattern, Swatch, Torso_Projection, Sleeve_Projection, SweaterPiece, Sweater
+from .models import Pattern, Swatch, Torso_Projection, Sleeve_Projection, SeparatedSweater
 
 
 def set_default_if_none(instance, data):
@@ -30,7 +30,7 @@ class SwatchSerializer(serializers.ModelSerializer):
 class TorsoProjectionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Torso_Projection
-        exclude = ['pattern']
+        exclude = ['sweater']
 
     def to_internal_value(self, data):
         """
@@ -45,7 +45,7 @@ class TorsoProjectionSerializer(serializers.ModelSerializer):
 class SleeveProjectionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Sleeve_Projection
-        exclude = ['pattern']
+        exclude = ['sweater']
 
     def to_internal_value(self, data):
         """
@@ -57,13 +57,13 @@ class SleeveProjectionSerializer(serializers.ModelSerializer):
         return super().to_internal_value(data)
 
 
-class PatternSerializer(serializers.ModelSerializer):
+class SeparatedSweaterSerializer(serializers.ModelSerializer):
     swatch = SwatchSerializer()
     torso_projection = TorsoProjectionSerializer()
     sleeve_projection = SleeveProjectionSerializer()
 
     class Meta:
-        model = Pattern
+        model = SeparatedSweater
         fields = ['name', 'content', 'swatch', 'torso_projection', 'sleeve_projection']
 
     def create(self, validated_data):
@@ -73,10 +73,10 @@ class PatternSerializer(serializers.ModelSerializer):
 
         user = self.context['request'].user
 
-        pattern = Sweater.objects.create(**validated_data)
+        separated_sweater = SeparatedSweater.objects.create(**validated_data)
 
-        Swatch.objects.create(pattern=pattern, user=user, **swatch_data)
-        Torso_Projection.objects.create(pattern=pattern, **torso_data)
-        Sleeve_Projection.objects.create(pattern=pattern, **sleeve_data)
+        Swatch.objects.create(pattern=separated_sweater, user=user, **swatch_data)
+        Torso_Projection.objects.create(sweater=separated_sweater, **torso_data)
+        Sleeve_Projection.objects.create(sweater=separated_sweater, **sleeve_data)
 
-        return pattern
+        return separated_sweater

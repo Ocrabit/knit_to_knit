@@ -67,12 +67,13 @@ export const compilePattern = async (data: CompilePatternData) => {
     replaceEmptyStrings(updatedData);
 
     // Debug
-    console.log("Updated Data:", updatedData);
+    //console.log("Updated Data:", updatedData);
 
     const csrfToken = getCsrfToken();
-    const response = await axiosInstance.post('/api/pattern-compile/', updatedData, {
+    const response = await axiosInstance.post('/pattern-compile/', updatedData, {
       headers: {
         'X-CSRFToken': csrfToken,
+        'Content-Type': 'application/json',
       },
     });
     return response.data;
@@ -82,12 +83,12 @@ export const compilePattern = async (data: CompilePatternData) => {
   }
 };
 
-export const fetchPatternDataByMode = async ({patternId, fileName, viewMode}: { patternId: any, fileName: any, viewMode: any }) => {
+export const fetchPatternDataByMode = async ({patternId, section, viewMode}: { patternId: any, section: any, viewMode: any }) => {
   try {
   //console.log("fetchPatternDataByMode called with:", { patternId, fileName, viewMode });
 
   const csrfToken = getCsrfToken();
-  const encodedFileName = encodeURIComponent(fileName);
+  const encodedSection = encodeURIComponent(section);
   const encodedViewMode = encodeURIComponent(viewMode);
 
   const response = await axiosInstance.get(
@@ -95,41 +96,43 @@ export const fetchPatternDataByMode = async ({patternId, fileName, viewMode}: { 
       {
         headers: {
           'X-CSRFToken': csrfToken,
+          'Content-Type': 'application/json',
         },
         params: {
-          file_name: encodedFileName, // Encode query parameter
+          section: encodedSection, // Encode query parameter
           view_mode: encodedViewMode, // Encode query parameter
         },
       }
     );
 
-  return response.data.grid_data; // Ensure you return the right data
+  return response.data.mode_data; // Ensure you return the right data
   } catch (error: any) {
     console.error('API error:', error);
     throw new Error(error.response?.data?.message || 'Failed to fetch pattern file.');
   }
 };
 
-export const fetchPatternDataByFile = async ({patternId, fileName}: { patternId: any, fileName: any }) => {
+export const fetchPatternDataByFile = async ({patternId, section}: { patternId: any, section: any }) => {
   try {
-  console.log("fetchPatternDataByFile called with:", { patternId, fileName });
+    //console.log("fetchPatternDataByFile called with:", { patternId, section });
 
-  const csrfToken = getCsrfToken();
-  const encodedFileName = encodeURIComponent(fileName);
+    const csrfToken = getCsrfToken();
+    const encodedSection = encodeURIComponent(section);
 
-  const response = await axiosInstance.get(
-      `/patterns/${encodeURIComponent(patternId)}/file`, // Encode dynamic segment
-      {
-        headers: {
-          'X-CSRFToken': csrfToken,
-        },
-        params: {
-          file_name: encodedFileName, // Encode query parameter
-        },
-      }
-    );
+    const response = await axiosInstance.get(
+        `/patterns/${encodeURIComponent(patternId)}/file`, // Encode dynamic segment
+        {
+          headers: {
+            'X-CSRFToken': csrfToken,
+            'Content-Type': 'application/json',
+          },
+          params: {
+            section: encodedSection, // Encode query parameter
+          },
+        }
+      );
 
-  return response.data.file_data;
+    return response.data.file_data;
   } catch (error: any) {
     console.error('API error:', error);
     throw new Error(error.response?.data?.message || 'Failed to fetch pattern file.');
@@ -138,19 +141,23 @@ export const fetchPatternDataByFile = async ({patternId, fileName}: { patternId:
 
 interface SavePatternChangesParams {
   patternId: string;
-  fileName: string;
+  section: string;
   viewMode: string;
   changes: any; // Define a more specific type if possible
+  colorMap?: {
+    idToColorArray: string[];
+  };
 }
 
 export const savePatternChanges = async ({
   patternId,
-  fileName,
+  section,
   viewMode,
-  changes
+  changes,
+  colorMap,
 }: SavePatternChangesParams): Promise<any> => {
   try {
-    console.log("savePatternChanges called with:", { patternId, fileName, viewMode, changes });
+    console.log("savePatternChanges called with:", { patternId, section, viewMode, changes, colorMap });
 
 
     const csrfToken = getCsrfToken();
@@ -158,13 +165,19 @@ export const savePatternChanges = async ({
     // Use encodeURIComponent for dynamic segments in the URL if needed
     const encodedPatternId = encodeURIComponent(patternId);
 
+    const requestBody: any = {
+      section: encodeURIComponent(section),
+      view_mode: encodeURIComponent(viewMode),
+      changed_data: changes,
+    };
+
+    if (viewMode === 'color' && colorMap) {
+      requestBody.color_map = colorMap;
+    }
+
     const response = await axiosInstance.post(
       `/patterns/${encodedPatternId}/save_changes`, // Encode dynamic segment
-      {
-        file_name: encodeURIComponent(fileName), // Encode in the body, though not strictly necessary for JSON fields
-        view_mode: encodeURIComponent(viewMode), // Encode in the body, though not strictly necessary for JSON fields
-        changed_data: changes,
-      },
+      requestBody,
       {
         headers: {
           'X-CSRFToken': csrfToken,
@@ -173,7 +186,7 @@ export const savePatternChanges = async ({
       }
     );
 
-    return response.data;
+    return response.status;
   } catch (error: any) {
     console.error('API error:', error);
     throw new Error(error.response?.data?.message || 'Failed to save pattern changes.');

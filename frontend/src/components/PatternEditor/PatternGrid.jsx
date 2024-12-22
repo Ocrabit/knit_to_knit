@@ -8,20 +8,26 @@ import PatternGridSquare from "./PatternGridSquare.jsx";
 import {COLOR_MAPPING, LINE_STYLES, VALUE_OUTLINE_MAPPING, COLOR_OUTLINE_MAPPING, NUMBER_MAPPING} from './config';
 import SideToolbar from "./Toolbars/SideToolbar.jsx";
 import TopToolbar from "./Toolbars/TopToolbar.jsx";
-import {debounce, getCSSVariable, updateLocalStorageProperty, ColorMapper} from "./utils.js";
+import {debounce, getCSSVariable, updateLocalStorageProperty} from "./utils.js";
 import useDrawingTools from "../PatternEditor/useDrawingTools.jsx";
 import {throttle} from 'lodash';
 import { unstable_batchedUpdates } from 'react-dom';
 import { updateShapeGrid, updateColorGrid, updateStitchTypeGrid } from "./gridUpdater.jsx";
 
 
-const PatternGrid = ({ gridData, handleSave, selectedFile, viewMode, LOCAL_STORAGE_KEY, handleFileChange, handleViewModeChange, colorMapper, onGridUpdate}) => {
+const PatternGrid = ({ gridData, handleSave, selectedSection, viewMode, LOCAL_STORAGE_KEY, handleFileChange, handleViewModeChange, colorMapper, onGridUpdate}) => {
+  // Return Checks
+  if (!colorMapper) {
+    return <div>Loading Color Mapper...</div>;
+  }
+
   const grid_pixels = getCSSVariable('--square_var');
   const gap_size = getCSSVariable('--gap_var');
 
-useEffect(() => {
-  console.log("PatternGrid received gridData:", gridData);
-}, [gridData]);
+  // Debug data receiving
+  // useEffect(() => {
+  //   console.log("PatternGrid received gridData:", gridData);
+  // }, [gridData]);
 
   const LOCAL_STORAGE_ACTIVE_KEY = 'ActiveSelections'
   const rows = gridData.shape.length;
@@ -44,12 +50,15 @@ useEffect(() => {
   // Memoized function to calculate the color grid based on the shape grid
   const calculateColorGrid = useCallback(() => {
     return shapeGrid.map((row, rowIndex) =>
-      row.map((square, colIndex) => ({
-        color: square.isHashed ? '#00000000' : colorMapper.getColorFromId(gridData.color?.[rowIndex]?.[colIndex]) || '#ffffff',
-        isHashed: square.isHashed,
-        marking: 'none',
-        outline: COLOR_OUTLINE_MAPPING[square.color] ?? 'none'
-      }))
+      row.map((square, colIndex) => {
+        const colorValue = colorMapper.getColorFromId(gridData.color?.[rowIndex]?.[colIndex]) || '#ffffff';
+        return {
+          color: square.isHashed ? '#00000000' : colorValue,
+          isHashed: square.isHashed,
+          marking: 'none',
+          outline: COLOR_OUTLINE_MAPPING[square.color] ?? 'none'
+        };
+      })
     );
   }, [shapeGrid, colorMapper, gridData.color]);
 
@@ -66,21 +75,8 @@ useEffect(() => {
   }, [shapeGrid]);
 
   // Initialize colorGrid and stitchTypeGrid with calculated values
-  const [colorGrid, setColorGrid] = useState(calculateColorGrid);
-  const [stitchTypeGrid, setStitchTypeGrid] = useState(calculateStitchTypeGrid);
-
-  useEffect(() => {
-    if (viewMode === 'color' && gridData.color && shapeGrid.length > 0) {
-      setColorGrid(calculateColorGrid());
-    }
-  }, [viewMode, gridData.color, shapeGrid, calculateColorGrid]);
-
-  // Effect to update stitchTypeGrid only when switching to 'stitch_type' view mode
-  useEffect(() => {
-    if (viewMode === 'stitch_type' && gridData.stitch_type && shapeGrid.length > 0) {
-      setStitchTypeGrid(calculateStitchTypeGrid());
-    }
-  }, [viewMode, gridData.stitch_type, shapeGrid, calculateStitchTypeGrid]);
+  const [colorGrid, setColorGrid] = useState(() => calculateColorGrid());
+  const [stitchTypeGrid, setStitchTypeGrid] = useState(() => calculateStitchTypeGrid());
 
   // Memoized active grid selector
   const activeGrid = useMemo(() => {
@@ -243,7 +239,7 @@ useEffect(() => {
     if (savedData) {
       try {
         const parsedData = JSON.parse(savedData);
-        console.log("Parsed saved data:", parsedData);
+        //console.log("Parsed saved data:", parsedData);
 
         const {
           savedMarker,
@@ -303,10 +299,6 @@ useEffect(() => {
   }, [rows, columns, grid_pixels, gap_size]);
 
 
-  useEffect(() => {
-    console.log('Active Mode:', activeMode);
-  }, [activeMode]);
-
   if (!gridData.shape || !shapeGrid.length) {
     return <div>Loading pattern...</div>;
   }
@@ -355,7 +347,7 @@ useEffect(() => {
 
           {/* Add Toolbars*/}
           <TopToolbar
-            selectedFile={selectedFile}
+            selectedSection={selectedSection}
             viewMode={viewMode}
             handleViewModeChange={handleViewModeChange}
             handleFileChange={handleFileChange}

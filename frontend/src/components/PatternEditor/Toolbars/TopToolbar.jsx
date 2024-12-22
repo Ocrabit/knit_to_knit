@@ -3,17 +3,17 @@
 import React from 'react';
 import './Toolbar.css'
 
-const TopToolbar = ({ selectedFile, viewMode, handleFileChange, handleViewModeChange }) => {
+const TopToolbar = ({ selectedSection, viewMode, handleFileChange, handleViewModeChange }) => {
     return (
       <div id="top-toolbar">
           <select className="top-toolbar-select"
-                  value={selectedFile}
+                  value={selectedSection}
                   onChange={handleFileChange}
           >
-              <option value="front_torso.npy">Front Torso</option>
-              <option value="back_torso.npy">Back Torso</option>
-              <option value="left_sleeve.npy">Left Sleeve</option>
-              <option value="right_sleeve.npy">Right Sleeve</option>
+              <option value="front_torso">Front Torso</option>
+              <option value="back_torso">Back Torso</option>
+              <option value="left_sleeve">Left Sleeve</option>
+              <option value="right_sleeve">Right Sleeve</option>
           </select>
           <select
               className="toolbar-select"

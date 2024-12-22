@@ -99,7 +99,7 @@ def standard_size_values(pattern, size):
 def initialize_array(width, height):
     array_dtype = np.dtype([
         ('shape', np.int8),
-        ('color', np.int8),
+        ('color', np.int16),
         ('stitch_type', np.int8),
     ])
 
@@ -247,12 +247,15 @@ def array_path_to_image(array_file_path):
     return image
 
 
+# Depreciated
 def save_pattern(array, file_path):
-    np.save(file_path, array)
+    np.savez(file_path, pattern_data=array, color_map=[])
 
 
+# Depreciated
 def load_pattern(file_path):
     return np.load(file_path)
+
 
 def render_snapshot(piece_data):
     pass # Make this when you get a chance

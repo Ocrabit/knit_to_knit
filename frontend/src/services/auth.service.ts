@@ -2,7 +2,8 @@
 
 import axios from "axios";
 
-const API_URL = import.meta.env.VITE_API_URL;  // we're reading this value from .env file
+const API_URL = import.meta.env.VITE_API_URL || "https://knittoknit.com/api/";  // we're reading this value from .env file
+console.log(import.meta.env.VITE_API_URL);
 
 export const axiosInstance = axios.create({
   baseURL: API_URL,
@@ -11,8 +12,19 @@ export const axiosInstance = axios.create({
   xsrfHeaderName: "X-CSRFToken",
   headers: {
     "Content-Type": "application/json",
-  }, // ask about this
+  },
 });
+
+axiosInstance.interceptors.response.use(
+  response => response,
+  error => {
+    if (error.response?.status === 403) {
+      console.error("Session expired. Redirecting to login...");
+      // Redirect logic here
+    }
+    return Promise.reject(error);
+  }
+);
 
 // Function to retrieve CSRF token from cookies
 export const getCsrfToken = (): string => {
@@ -26,7 +38,7 @@ export const getCsrfToken = (): string => {
 const checkSession = async () => {
   try {
     // Fetch the current user to check if the session is still valid
-    const response = await axiosInstance.get(`/api/user/me/`);
+    const response = await axiosInstance.get(`/user/me/`);
     const user = response.data;
     if (user) {
       return user; // return user if successfully there
@@ -49,7 +61,7 @@ const login = async (username: string, password: string) => {
     //Fetch CSRF token
     const csrfToken = getCsrfToken();
 
-    const response = await axiosInstance.post(`/api/login/`, {
+    const response = await axiosInstance.post(`/login/`, {
       username: username,
       password: password,
     },{
@@ -60,7 +72,7 @@ const login = async (username: string, password: string) => {
     console.log('Login successful:', response.data)
 
     //Fetch User Profile After Login
-    const userResponse = await axiosInstance.get('/api/user/me/')
+    const userResponse = await axiosInstance.get('/user/me/')
     const user = userResponse.data;
 
     return {user};
@@ -76,7 +88,12 @@ const logout = async () => {
     //Fetch CSRF token
     const csrfToken = getCsrfToken();
 
-    const response = await axiosInstance.post(`/api/logout/`,{},
+    console.log('Logout request headers:', {
+      csrfToken: getCsrfToken(),
+      cookies: document.cookie,
+    });
+
+    const response = await axiosInstance.post(`/logout/`,{},
         {
           headers: {
             'X-CSRFToken': csrfToken,

@@ -241,7 +241,6 @@ const GridEditor = () => {
   
   // Dynamically calculate the container width and height based on grid configuration
   const { width: gridWidth, height: gridHeight } = calcContainerSize(rows, columns, grid_pixels, gap_size);
-  console.log(gridWidth, gridHeight)
 
   // SAVE GRID
   const saveGrid = () => {

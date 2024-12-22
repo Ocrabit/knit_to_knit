@@ -13,7 +13,7 @@ const Patterns = () => {
         const fetchPatterns = async () => {
             try {
                 // Use axiosInstance to ensure the Authorization header is sent
-                const response = await axiosInstance.get('/api/user-patterns/');
+                const response = await axiosInstance.get('/user-patterns/');
                 setPatterns(response.data);
                 setLoading(false);
             } catch (error) {
