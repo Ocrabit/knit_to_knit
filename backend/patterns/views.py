@@ -4,9 +4,9 @@ from importlib.metadata import metadata
 
 import numpy as np
 from django.conf import settings
+from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.db import transaction
-from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -15,8 +15,31 @@ from .models import Pattern, SeparatedSweater
 from .serializers import GetPatternSerializer, SeparatedSweaterSerializer
 from .tool_functions.services import generate_sweater_pattern
 import logging
+# Aws File Check Import
+import boto3
+from botocore.exceptions import ClientError
 
 logger = logging.getLogger('patterns')
+
+
+def custom_exist_check(bucket_name, key):
+    """
+    Check if a file exists in an S3 bucket using boto3.
+    :param bucket_name: The name of the S3 bucket.
+    :param key: The key (path) to the file in the bucket.
+    :return: True if the file exists, False otherwise.
+    """
+    s3 = boto3.client('s3')
+    try:
+        s3.head_object(Bucket=bucket_name, Key=key)
+        logger.info(f"File exists in S3: {key}")
+        return True
+    except ClientError as e:
+        if e.response['Error']['Code'] == "404":
+            logger.error(f"File not found in S3: {key}")
+        else:
+            logger.error(f"Error accessing S3: {e}")
+        return False
 
 
 # Create your views here.
@@ -29,6 +52,7 @@ def user_patterns(request):
     return Response(serializer.data)
 
 
+# Soon add a variable approach to decide the pattern_type
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def compile_pattern(request):
@@ -44,31 +68,37 @@ def compile_pattern(request):
 
     # Determine pattern type and redirect to the appropriate serializer
     pattern_type = request.data.get("pattern_type", None)
-
     if not pattern_type:
         return Response({"error": "Pattern type is required."}, status=status.HTTP_400_BAD_REQUEST)
 
+    # Determine serializer class
     if pattern_type == "SeparatedSweater":
         serializer_class = SeparatedSweaterSerializer
     else:
+        logger.error("Unsupported pattern type: %s", pattern_type)
         return Response({"error": f"Unsupported pattern type: {pattern_type}"}, status=status.HTTP_400_BAD_REQUEST)
 
     # Use the appropriate serializer
     serializer = serializer_class(data=request.data, context={"request": request})
+    if not serializer.is_valid():
+        logger.error("Validation failed with errors: %s", serializer.errors)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    logger.info("Serializer validation passed.")
     if serializer.is_valid():
-        logger.info("Serializer is valid")
         # Wrap in transaction to delete partial data if on failure
         with transaction.atomic():
             try:
                 # Save the pattern object
                 separated_sweater = serializer.save(author=request.user)
+                logger.info("Pattern object saved successfully.")
 
                 # Perform calculations and generate arrays
                 try:
                     front_torso_array, back_torso_array, left_sleeve_array, right_sleeve_array = generate_sweater_pattern(separated_sweater)
+                    logger.info("Sweater pattern generated successfully.")
                 except Exception as e:
-                    logger.error("Error generating sweater pattern:", str(e))
+                    logger.error("Error generating sweater pattern: %s", str(e))
                     return Response({"error": "Failed to generate sweater pattern.", "details": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
                 # Create an empty color_map
@@ -83,8 +113,13 @@ def compile_pattern(request):
                          right_sleeve=right_sleeve_array,
                          color_map=color_map)
                 file_buffer.seek(0)
+
+                logger.info("Saving file to S3 bucket: %s", settings.AWS_STORAGE_BUCKET_NAME)
                 separated_sweater.sweater_file.save('pattern_pieces.npz', ContentFile(file_buffer.read()))
+                logger.info("File successfully saved to S3.")
+
                 separated_sweater.save()
+                logger.info("Pattern file saved successfully to S3.")
 
                 return Response({
                     "message": "Pattern created successfully",
@@ -93,12 +128,8 @@ def compile_pattern(request):
                 }, status=status.HTTP_201_CREATED)
 
             except Exception as e:
-                logger.error("Unexpected error during pattern creation:", str(e))
+                logger.error("Unexpected error during pattern creation: %s", str(e))
                 return Response({"error": "An unexpected error occurred.", "details": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-    # Log validation errors
-    logger.error("Validation failed. Errors:", serializer.errors)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 # Returns information from the view_mode of a section
@@ -110,10 +141,10 @@ def get_pattern_mode_data(request, pattern_id):
     section_key = request.query_params.get('section')
 
     # Construct the file path
-    file_path = os.path.join(settings.MEDIA_ROOT, f'patterns/pattern_{pattern_id}/{file_name}')
+    file_path = f'patterns/pattern_{pattern_id}/{file_name}'
 
-    if not os.path.exists(file_path):
-        logger.error('Error: File does not exist at the specified path.')
+    if not custom_exist_check(settings.AWS_STORAGE_BUCKET_NAME, file_path):
+        logger.error('Error: File does not exist at the specified path in S3.')
         return Response({'error': f'File not found: {file_path}'}, status=404)
 
     # Define a mapping for view_mode to index in the tuple
@@ -127,8 +158,10 @@ def get_pattern_mode_data(request, pattern_id):
         return Response({'error': f"Invalid view mode '{view_mode}'"}, status=400)
 
     try:
-        # Load the .npz file
-        with np.load(file_path, allow_pickle=True) as npz_data:
+        # Load the .npz file from S3
+        with default_storage.open(file_path, 'rb') as file:
+            npz_data = np.load(file, allow_pickle=True)
+
             if section_key not in npz_data:
                 return Response({'error': f"Invalid section '{section_key}' in file."}, status=400)
 
@@ -161,16 +194,18 @@ def get_pattern_file_data(request, pattern_id):
     section = request.query_params.get('section')
 
     # Construct the file path
-    file_path = os.path.join(settings.MEDIA_ROOT, f'patterns/pattern_{pattern_id}/{file_name}')
+    file_path = f'patterns/pattern_{pattern_id}/{file_name}'
     logger.info('file path is %s', file_path)
 
-    if not os.path.exists(file_path):
-        logger.error('Error: File does not exist at the specified path.')
+    if not custom_exist_check(settings.AWS_STORAGE_BUCKET_NAME, file_path):
+        logger.error('Error: File does not exist at the specified path in S3.')
         return Response({'error': f'File not found: {file_path}'}, status=404)
 
     try:
-        # Load the .npz file
-        with np.load(file_path, allow_pickle=True) as npz_data:
+        # Load the .npz file from S3
+        with default_storage.open(file_path, 'rb') as file:
+            npz_data = np.load(file, allow_pickle=True)
+
             if section not in npz_data:
                 return Response({'error': f"Invalid section '{section}' in file."}, status=400)
 
@@ -222,7 +257,7 @@ def save_pattern_changes(request, pattern_id):
         logger.info(f'No Changes To Save for pattern_id={pattern_id}, section={section}, view_mode={view_mode}')
         return Response({'message': 'No Changes To Save'}, status=204)
 
-    file_path = os.path.join(settings.MEDIA_ROOT, f'patterns/pattern_{pattern_id}/{file_name}')
+    file_path = f'patterns/pattern_{pattern_id}/{file_name}'
     logger.info('file path is: %s', file_path)
 
     try:
@@ -230,8 +265,10 @@ def save_pattern_changes(request, pattern_id):
         new_grid_array = np.array(new_grid_data)
         logger.info('new grid converted: %s', new_grid_array)
 
-        # Load the existing .npz file
-        with np.load(file_path, allow_pickle=True) as npz_data:
+        # Load the .npz file from S3
+        with default_storage.open(file_path, 'rb') as file:
+            npz_data = np.load(file, allow_pickle=True)
+
             # Extract existing data
             file_content = {key: npz_data[key] for key in npz_data}
             logger.info('Loaded npz file data: %s', file_content.keys())
@@ -248,8 +285,9 @@ def save_pattern_changes(request, pattern_id):
             file_content['color_map'] = color_map
             logger.info(f"Updated color_map data for section {section}. Color_Map consists of: %s", color_map)
 
-        # Save the updated content back to the .npz file
-        np.savez(file_path, **file_content)
+        # Save the updated content back to the .npz file in S3
+        with default_storage.open(file_path, 'wb') as file:
+            np.savez(file, **file_content)
         logger.info('File successfully updated.')
 
         return Response(status=200)
@@ -258,124 +296,45 @@ def save_pattern_changes(request, pattern_id):
         return Response({'error': str(e)}, status=500)
 
 
+# Very Broken || Very Depreciated
 # @api_view(['POST'])
 # @permission_classes([IsAuthenticated])
-# def save_pattern_changes(request, pattern_id):
-#     logger.info('Save Pattern Changes View is called')
-#     file_name = 'pattern_pieces.npz'
-#     section = request.data.get('section')
-#     view_mode = request.data.get('view_mode')
-#     new_grid_data = request.data.get('changed_data')
-#     color_map = request.data.get('color_map')
-#
-#     if not new_grid_data:
-#         logger.error('no grid data')
-#         return Response({'error': 'No grid data provided'}, status=400)
-#
-#     file_path = os.path.join(settings.MEDIA_ROOT, f'patterns/pattern_{pattern_id}/{file_name}')
-#     logger.info('File path is: %s', file_path)
-#
-#     # Check if the file exists
-#     if not os.path.exists(file_path):
-#         return Response({'error': 'Pattern file not found.'}, status=404)
-#
+# def recalculate_pattern(request, pattern_id):
+#     """
+#     View to edit the pattern's torso or sleeve projections and recalculate the .npy files.
+#     """
 #     try:
-#         # Convert the received grid data to a NumPy array
-#         new_grid_array = np.array(new_grid_data)
-#         logger.info('New grid converted: %s', new_grid_array)
+#         # Retrieve the pattern instance
+#         pattern = Pattern.objects.get(id=pattern_id, author=request.user)
 #
-#         # Load the existing .npz file
-#         with np.load(file_path, allow_pickle=True) as npz_data:
-#             # Extract existing data
-#             file_content = dict(npz_data)
-#             logger.info('Loaded npz file data: %s', file_content.keys())
+#         # Recalculate the pattern arrays
+#         front_torso_array, back_torso_array, left_sleeve_array, right_sleeve_array = generate_sweater_pattern(pattern)
 #
-#         # Ensure the section exists
-#         if section not in file_content:
-#             return Response({'error': f"Section '{section}' not found in the file."}, status=400)
+#         pieces = {
+#             'front_torso': front_torso_array,
+#             'back_torso': back_torso_array,
+#             'left_sleeve': left_sleeve_array,
+#             'right_sleeve': right_sleeve_array,
+#         }
 #
-#         # Retrieve the section data
-#         section_array = file_content[section]
-#         logger.info('Section Array: %s', section_array)
-#         if isinstance(section_array, np.ndarray) and section_array.dtype == object:
-#             section_data = section_array.item()
-#             logger.info('Section data extracted as dictionary.')
-#         else:
-#             section_data = section_array
+#         # Overwrite the existing .npy files
+#         for piece_type, array in pieces.items():
+#             # Save the array to a ContentFile
+#             file_buffer = io.BytesIO()
+#             np.save(file_buffer, array, allow_pickle=False)
+#             file_buffer.seek(0)
+#             npy_filedata = ContentFile(file_buffer.read(), name=f'{piece_type}.npy')
 #
-#         # Ensure section_data is a dictionary
-#         if not isinstance(section_data, dict):
-#             logger.error('Invalid section data format: %s', type(section_data))
-#             return Response({'error': 'Invalid section data format.'}, status=500)
+#             # Update or create the SweaterPiece instance
+#             piece_instance, created = SweaterPiece.objects.update_or_create(
+#                 sweater=pattern,
+#                 piece_type=piece_type,
+#                 defaults={'sweater_file': npy_filedata}
+#             )
 #
-#         # Update the grid data for the view mode
-#         section_data[view_mode] = new_grid_array
-#         logger.info("Updated %s data for section %s.", view_mode, section)
+#         return Response({"message": "Pattern recalculated successfully"}, status=status.HTTP_200_OK)
 #
-#         # If view_mode is 'color', also update the color_map
-#         if view_mode == 'color' and color_map:
-#             # Validate color_map data
-#             id_to_color_array = color_map.get('idToColorArray')
-#
-#             if not id_to_color_array:
-#                 return Response({'error': 'Invalid color map data provided.'}, status=400)
-#
-#             # Save color mappings to the section data
-#             section_data['idToColorArray'] = id_to_color_array
-#             logger.info('Color map data saved.')
-#
-#         # Save the updated section data back to the file content
-#         file_content[section] = section_data
-#
-#         # Save the updated content back to the .npz file
-#         np.savez(file_path, **file_content)
-#         logger.info('File successfully updated.')
-#
-#         return Response({'status': 'success'})
+#     except Pattern.DoesNotExist:
+#         return Response({"error": "Pattern not found or unauthorized access"}, status=status.HTTP_404_NOT_FOUND)
 #     except Exception as e:
-#         logger.error('Error during file update:  %s', str(e))
-#         return Response({'error': str(e)}, status=500)
-
-
-# Very Broken
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def recalculate_pattern(request, pattern_id):
-    """
-    View to edit the pattern's torso or sleeve projections and recalculate the .npy files.
-    """
-    try:
-        # Retrieve the pattern instance
-        pattern = Pattern.objects.get(id=pattern_id, author=request.user)
-
-        # Recalculate the pattern arrays
-        front_torso_array, back_torso_array, left_sleeve_array, right_sleeve_array = generate_sweater_pattern(pattern)
-
-        pieces = {
-            'front_torso': front_torso_array,
-            'back_torso': back_torso_array,
-            'left_sleeve': left_sleeve_array,
-            'right_sleeve': right_sleeve_array,
-        }
-
-        # Overwrite the existing .npy files
-        for piece_type, array in pieces.items():
-            # Save the array to a ContentFile
-            file_buffer = io.BytesIO()
-            np.save(file_buffer, array, allow_pickle=False)
-            file_buffer.seek(0)
-            npy_filedata = ContentFile(file_buffer.read(), name=f'{piece_type}.npy')
-
-            # Update or create the SweaterPiece instance
-            piece_instance, created = SweaterPiece.objects.update_or_create(
-                sweater=pattern,
-                piece_type=piece_type,
-                defaults={'sweater_file': npy_filedata}
-            )
-
-        return Response({"message": "Pattern recalculated successfully"}, status=status.HTTP_200_OK)
-
-    except Pattern.DoesNotExist:
-        return Response({"error": "Pattern not found or unauthorized access"}, status=status.HTTP_404_NOT_FOUND)
-    except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+#         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
