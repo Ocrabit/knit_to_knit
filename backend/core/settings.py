@@ -50,7 +50,6 @@ INSTALLED_APPS = [
     "rest_framework",
     "authentication",
     "patterns",
-    'django_extensions',
     'storages',
 ]
 
@@ -94,8 +93,10 @@ LOGGING = {
         },
         'file': {
             'level': 'INFO',
-            'class': 'logging.FileHandler',
+            'class': 'logging.handlers.RotatingFileHandler',
             'filename': 'app.log',
+            'maxBytes': 1024 * 1024 * 5,  # 5 MB
+            'backupCount': 5,  # Keep last 5 log files
             'formatter': 'verbose',
         },
         'error_file': {
@@ -197,19 +198,33 @@ DATABASES = {
 
 # **** More AWS WOOT ****
 # S3 Bucket Settings
-AWS_STORAGE_BUCKET_NAME = env('AWS_STORAGE_BUCKET_NAME')
-AWS_S3_REGION_NAME = env('AWS_S3_REGION_NAME')  # e.g., 'us-east-1'
-AWS_QUERYSTRING_AUTH = env.bool('AWS_QUERYSTRING_AUTH', default=False)  # Disable query parameter authentication for public URLs
-
-# Media Files Storage
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+AWS_STORAGE_BUCKET_NAME = 'knittoknit-media'
+AWS_S3_REGION_NAME = 'us-east-2'  # e.g., 'us-east-1'
+AWS_QUERYSTRING_AUTH = False  # Disable query parameter authentication for public URLs
 
 # Optional: Cache Control Headers
 AWS_S3_OBJECT_PARAMETERS = {
     'CacheControl': 'max-age=86400',
 }
 
-MEDIA_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/'
+# Media Files Storage
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+STORAGES = {
+    "default": {
+        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+        "OPTIONS": {
+            "bucket_name": AWS_STORAGE_BUCKET_NAME,
+            "region_name": AWS_S3_REGION_NAME,
+            "querystring_auth": AWS_QUERYSTRING_AUTH,
+            "object_parameters": AWS_S3_OBJECT_PARAMETERS,
+        },
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
+MEDIA_ROOT = 'media'
+MEDIA_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com/'
 
 
 # Password validation
@@ -251,12 +266,10 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),  # Includes react_dist in the static directory
 ]
-#print("STATIC_URL:", STATIC_URL)
-#print("STATIC_ROOT:", STATIC_ROOT)
-#print("STATICFILES_DIRS:", STATICFILES_DIRS)
 
-MEDIA_URL = '/media/'  # Public URL at the browser
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # Directory where uploaded media is saved.
+# Old Media Local Storage Location
+# MEDIA_URL = '/media/'  # Public URL at the browser
+# MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # Directory where uploaded media is saved.
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
