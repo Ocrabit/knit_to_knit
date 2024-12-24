@@ -162,12 +162,12 @@ const PatternGrid = ({ gridData, handleSave, selectedSection, viewMode, LOCAL_ST
 
     // Ensure indices are within bounds
     if (rowIndex >= 0 && rowIndex < rows && colIndex >= 0 && colIndex < columns) {
-      console.log(`Mouse on grid cell: row ${rowIndex}, column ${colIndex}`);
-      console.log(`Mouse screen (${e.clientX}, ${e.clientY})`);
-      console.log(`Grid Mouse Point (${offsetX}, ${offsetY})`);
+      // console.log(`Mouse on grid cell: row ${rowIndex}, column ${colIndex}`);
+      // console.log(`Mouse screen (${e.clientX}, ${e.clientY})`);
+      // console.log(`Grid Mouse Point (${offsetX}, ${offsetY})`);
       return { rowIndex, colIndex };
     } else {
-      console.log("Mouse outside the grid boundaries");
+      // console.log("Mouse outside the grid boundaries");
       return null;
     }
   };
@@ -207,7 +207,7 @@ const PatternGrid = ({ gridData, handleSave, selectedSection, viewMode, LOCAL_ST
   // Definitely broken with the 3d array, make an array for each.
   const saveGridToLocalStorage = useCallback(
     debounce((newGrid) => {
-      console.log('savedGridToLocalStorage Called');
+      console.log('saving to local storage');
       try {
         let dataToSave;
         if (viewMode === 'shape') {

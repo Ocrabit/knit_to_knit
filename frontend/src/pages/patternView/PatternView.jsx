@@ -153,7 +153,7 @@ const PatternView = () => {
       ...prevChanges,
       [viewMode]: updatedGridData,
     }));
-    console.log('handleGridUpdate called...', updatedGridData);
+    // console.log('handleGridUpdate called...', updatedGridData);
   };
 
 

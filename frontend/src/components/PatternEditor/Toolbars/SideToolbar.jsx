@@ -125,7 +125,6 @@ const SideToolbar = ({
 
   // Handle color selection logic for color viewMode
   const handleColorRecentChange = (color) => {
-    console.log('recent Color change', color)
     handleColorChange(color);
 
     setRecentColors((prevColors) => {
