@@ -27,3 +27,15 @@ scp -i KnitToKnitPair.pem -r /Users/marcocassar/PycharmProjects/knitting_project
 connect-aws:
 	ssh -i /Users/marcocassar/PycharmProjects/knitting_project_versions/knit_to_knit_v2/KnitToKnitPair.pem ec2-user@18.119.122.236
 
+push-docker-compose.yml:
+	scp -i KnitToKnitPair.pem -r /Users/marcocassar/PycharmProjects/knitting_project_versions/knit_to_knit_v2/docker-compose.yml ec2-user@18.119.122.236:/home/ec2-user/
+
+push-settings.py:
+	scp -i KnitToKnitPair.pem -r /Users/marcocassar/PycharmProjects/knitting_project_versions/knit_to_knit_v2/backend/core/settings.py ec2-user@18.119.122.236:/home/ec2-user/backend/core/
+
+push-.env:
+	scp -i KnitToKnitPair.pem -r /Users/marcocassar/PycharmProjects/knitting_project_versions/knit_to_knit_v2/.env ec2-user@18.119.122.236:/home/ec2-user/
+
+push-requirements:
+	scp -i KnitToKnitPair.pem -r /Users/marcocassar/PycharmProjects/knitting_project_versions/knit_to_knit_v2/backend/requirements/* ec2-user@18.119.122.236:/home/ec2-user/backend/requirements/
+
