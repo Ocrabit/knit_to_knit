@@ -19,10 +19,8 @@ connect-postgres:
 remove_unamed_volumes:
 	docker volume ls -q | grep -E '^[0-9a-f]{64}$' | xargs -r docker volume rm
 
-copy_prod_dist:
+push-react:
 	scp -i KnitToKnitPair.pem -r /Users/marcocassar/PycharmProjects/knitting_project_versions/knit_to_knit_v2/frontend/dist/* ec2-user@18.119.122.236:/home/ec2-user/backend/staticfiles/react_dist/
-
-scp -i KnitToKnitPair.pem -r /Users/marcocassar/PycharmProjects/knitting_project_versions/knit_to_knit_v2/backend/requirements/* ec2-user@18.119.122.236:/home/ec2-user/backend/requirements/
 
 connect-aws:
 	ssh -i /Users/marcocassar/PycharmProjects/knitting_project_versions/knit_to_knit_v2/KnitToKnitPair.pem ec2-user@18.119.122.236
