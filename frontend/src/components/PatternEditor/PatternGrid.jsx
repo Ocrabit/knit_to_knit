@@ -274,6 +274,24 @@ const PatternGrid = ({ gridData, handleSave, selectedSection, viewMode, LOCAL_ST
 
   const [minScale, setMinScale] = useState(1);
 
+  // Disable zooming on phone for this component only
+  // Look into effect
+  // useEffect(() => {
+  //   if (window.matchMedia('(max-width: 768px)').matches) { // Apply only on devices with width <= 768px
+  //     const metaViewport = document.querySelector('meta[name="viewport"]');
+  //     const originalContent = metaViewport?.getAttribute('content') || '';
+  //
+  //     metaViewport?.setAttribute(
+  //       'content',
+  //       'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no'
+  //     );
+  //
+  //     return () => {
+  //       metaViewport?.setAttribute('content', originalContent);
+  //     };
+  //   }
+  // }, []);
+
   useLayoutEffect(() => {
     const updateMinScale = () => {
       if (canvasContainerRef.current && gridContainerRef.current) {
