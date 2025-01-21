@@ -93,7 +93,7 @@ const OnDrawPopup = ({size, setSize, position, viewMode, recentColors, handleCol
 
 const SideToolbar = ({
                        activeMode, viewMode, LOCAL_STORAGE_ACTIVE_KEY, handleSave,
-                       handleModeSelect, handleColorChange, setDrawSize, setEraseSize, drawSize, eraseSize
+                       handleModeSelect, handleColorChange, setDrawSize, setEraseSize, drawSize, eraseSize, handleRedo, handleUndo
                      }) => {
   const [recentColors, setRecentColors] = useState(['#000000', '#FFFFFF', '#FF69B4']); // Initialize with default colors
 
@@ -159,6 +159,18 @@ const SideToolbar = ({
       </button>
     );
 
+    // if (viewMode === 'color') {
+    //       buttons.push(
+    //           <button
+    //               key="select"
+    //               className="side-toolbar-button"
+    //               onClick={handleButtonClick('select')}
+    //           >
+    //               <img src={Icons.select_icon} alt="Select Icon" draggable="false"/>
+    //           </button>
+    //       );
+    //   }
+
     // Pan button
     buttons.push(
       <button
@@ -172,6 +184,14 @@ const SideToolbar = ({
 
     // Reset button
     buttons.push(<ResetButton key="reset" />);
+
+    buttons.push(<button onClick={handleUndo} key="undo">
+          Undo
+      </button>);
+
+    buttons.push(<button onClick={handleRedo} key="redo">
+          Redo
+      </button>);
 
     // if (viewMode === 'stitch_type') {
     //   buttons.push(

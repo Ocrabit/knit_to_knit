@@ -8,7 +8,7 @@ import PatternGridSquare from "./PatternGridSquare.jsx";
 import {COLOR_MAPPING, LINE_STYLES, VALUE_OUTLINE_MAPPING, COLOR_OUTLINE_MAPPING, NUMBER_MAPPING} from './config';
 import SideToolbar from "./Toolbars/SideToolbar.jsx";
 import TopToolbar from "./Toolbars/TopToolbar.jsx";
-import {debounce, getCSSVariable, updateLocalStorageProperty} from "./utils.js";
+import {debounce, getCSSVariable, updateLocalStorageProperty, getAffectedCells, useUndoRedo} from "./utils.js";
 import useDrawingTools from "../PatternEditor/useDrawingTools.jsx";
 import {throttle} from 'lodash';
 import { unstable_batchedUpdates } from 'react-dom';
@@ -86,7 +86,7 @@ const PatternGrid = ({ gridData, handleSave, selectedSection, viewMode, LOCAL_ST
   }, [viewMode, shapeGrid, colorGrid, stitchTypeGrid]);
 
   // Variables
-  const {activeMode, drawActive, eraseActive, panActive, handleModeSelect} = useDrawingTools(LOCAL_STORAGE_ACTIVE_KEY);
+  const {activeMode, drawActive, eraseActive, panActive, selectActive, handleModeSelect} = useDrawingTools(LOCAL_STORAGE_ACTIVE_KEY);
   const [isDrawing, setIsDrawing] = useState(false);
   const [selectedColor, setSelectedColor] = useState('#000000');
   const [selectedMarking, setSelectedMarking] = useState('none');
@@ -117,13 +117,97 @@ const PatternGrid = ({ gridData, handleSave, selectedSection, viewMode, LOCAL_ST
     updateLocalStorageProperty(LOCAL_STORAGE_ACTIVE_KEY, 'selectedMarker', newMarker)
   };
 
+  // Undo / Redo Vars
+  const [historyStack, setHistoryStack] = useState([]);
+  const [redoStack, setRedoStack] = useState([]);
+  const historyLimit = 50;
+  const [changeQueue, setChangeQueue] = useState(new Map());
+
+  const handleUndo = () => {
+    if (historyStack.length === 0) return;
+
+    const lastDeltas = historyStack[historyStack.length - 1];
+    setHistoryStack((prevHistory) => prevHistory.slice(0, -1)); // Remove last entry
+
+    const redoDeltas = getNewPreviousValues(lastDeltas)
+    setRedoStack((prevRedo) => [redoDeltas, ...prevRedo]); // Add to redo stack
+
+    applyDeltas(lastDeltas, true);
+  };
+
+  const handleRedo = () => {
+    if (redoStack.length === 0) return;
+
+    const nextDeltas = redoStack[0];
+    //console.log('Redo deltas:', nextDeltas);
+    setRedoStack((prevRedo) => prevRedo.slice(1)); // Remove first entry
+    setHistoryStack((prevHistory) => [...prevHistory, nextDeltas]); // Add back to history
+
+    applyDeltas(nextDeltas, false); // Apply deltas
+  };
+
+  const applyDeltas = (deltas, reverse) => {
+    //console.log('Applying deltas:', deltas, 'Reverse:', reverse);
+    const setGridFunction =
+      viewMode === 'shape' ? setShapeGrid : viewMode === 'color' ? setColorGrid : setStitchTypeGrid;
+
+    setGridFunction((prevGrid) => {
+      const updatedGrid = [...prevGrid];
+      deltas.forEach(({ row, col, prevValue, newValue }) => {
+        updatedGrid[row][col] = reverse ? prevValue : newValue;
+      });
+      return updatedGrid;
+    });
+  };
+
+  const getNewPreviousValues = (deltas) => {
+    deltas.forEach((value, key) => {
+      const { row, col } = value;
+      deltas.set(key, {
+        ...value,
+        newValue: activeGrid[row][col],
+      });
+    });
+    return deltas;
+  };
+
+  const queueChange = (row, col) => {
+    setChangeQueue((prevQueue) => {
+      const newMapQueue = new Map(prevQueue); // Ensure uniqueness
+
+      // Get all affected cells
+      const affectedCells = getAffectedCells(row, col, drawSize, activeGrid);
+
+      affectedCells.forEach(({row: affectedRow, col: affectedCol}) => {
+        const key = `${affectedRow}-${affectedCol}`;
+        if (!newMapQueue.has(key)) {
+          newMapQueue.set(key, {
+            row: affectedRow,
+            col: affectedCol,
+            prevValue: activeGrid[affectedRow][affectedCol],
+          });
+        }
+      });
+
+      return newMapQueue;
+    });
+  };
+
+  // Add undo and redo listeners
+  useUndoRedo(handleUndo, handleRedo);
+
   // Handle mouse down event (start drawing)
   const handleMouseDown = (e) => {
     if (!drawActive && !eraseActive) return;
+
     setIsDrawing(true);
+    setChangeQueue(() => new Map());
     const indices = getSquareIndicesFromEvent(e);
+
     if (indices !== null) {
-      fillSquare(indices.rowIndex, indices.colIndex);
+      const { rowIndex, colIndex } = indices;
+      queueChange(rowIndex, colIndex);
+      fillSquare(rowIndex, colIndex);
     }
   };
 
@@ -131,18 +215,36 @@ const PatternGrid = ({ gridData, handleSave, selectedSection, viewMode, LOCAL_ST
   const handleMouseMove = useCallback(
     throttle((e) => {
       if (!isDrawing) return;
+
       const indices = getSquareIndicesFromEvent(e);
       if (indices !== null && (drawActive || eraseActive)) {
-        fillSquare(indices.rowIndex, indices.colIndex);
+        const { rowIndex, colIndex } = indices;
+
+        queueChange(rowIndex, colIndex);
+        fillSquare(rowIndex, colIndex);
       }
     }, 16),
     [isDrawing, drawActive, eraseActive]
   );
 
   const handleMouseUp = () => {
-    setIsDrawing( false);
-  }
+    setChangeQueue((prevQueue) => {
+      if (prevQueue.size > 0) {
+        setHistoryStack((prevHistory) => {
+          const newHistory = [...prevHistory, prevQueue];
+          //console.log('Pushed drawn map to history stack:', prevQueue);
+          if (newHistory.length > historyLimit) newHistory.shift();
+          return newHistory;
+        });
+        setRedoStack([]); // Clear redo stack
+        //console.log('Cleared redo stack on new action');
+      }
 
+      return new Map(); // Reset queue
+    });
+
+    if (!isDrawing) setIsDrawing(false);
+  };
 
   const getSquareIndicesFromEvent = (e) => {
     if (!gridContainerRef.current || !transformWrapperRef.current) return null;
@@ -274,24 +376,6 @@ const PatternGrid = ({ gridData, handleSave, selectedSection, viewMode, LOCAL_ST
 
   const [minScale, setMinScale] = useState(1);
 
-  // Disable zooming on phone for this component only
-  // Look into effect
-  // useEffect(() => {
-  //   if (window.matchMedia('(max-width: 768px)').matches) { // Apply only on devices with width <= 768px
-  //     const metaViewport = document.querySelector('meta[name="viewport"]');
-  //     const originalContent = metaViewport?.getAttribute('content') || '';
-  //
-  //     metaViewport?.setAttribute(
-  //       'content',
-  //       'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no'
-  //     );
-  //
-  //     return () => {
-  //       metaViewport?.setAttribute('content', originalContent);
-  //     };
-  //   }
-  // }, []);
-
   useLayoutEffect(() => {
     const updateMinScale = () => {
       if (canvasContainerRef.current && gridContainerRef.current) {
@@ -380,6 +464,8 @@ const PatternGrid = ({ gridData, handleSave, selectedSection, viewMode, LOCAL_ST
               setEraseSize={setEraseSize}
               drawSize={drawSize}
               eraseSize={eraseSize}
+              handleUndo={handleUndo}
+              handleRedo={handleRedo}
               LOCAL_STORAGE_ACTIVE_KEY={LOCAL_STORAGE_ACTIVE_KEY}
           />
 

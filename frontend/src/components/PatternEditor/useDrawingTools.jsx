@@ -7,6 +7,7 @@ const useDrawingTools = (LOCAL_STORAGE_ACTIVE_KEYS) => {
   const [drawActive, setDrawActive] = useState(false);
   const [eraseActive, setEraseActive] = useState(false);
   const [panActive, setPanActive] = useState(false);
+  const [selectActive, setSelectActive] = useState(false);
 
   const handleModeSelect = (modeId) => {
     setActiveMode(modeId);
@@ -15,15 +16,23 @@ const useDrawingTools = (LOCAL_STORAGE_ACTIVE_KEYS) => {
     if (modeId === 'draw') {
       setDrawActive(true);
       setEraseActive(false);
+      setSelectActive(false);
       setPanActive(false);
     } else if (modeId === 'erase') {
       setDrawActive(false);
       setEraseActive(true);
+      setSelectActive(false);
       setPanActive(false);
     } else if (modeId === 'pan') {
       setDrawActive(false);
       setEraseActive(false);
+      setSelectActive(false);
       setPanActive(true);
+    } else if (modeId === 'select') {
+      setDrawActive(false);
+      setEraseActive(false);
+      setSelectActive(true);
+      setPanActive(false);
     }
   };
 
@@ -32,6 +41,7 @@ const useDrawingTools = (LOCAL_STORAGE_ACTIVE_KEYS) => {
     drawActive,
     eraseActive,
     panActive,
+    selectActive,
     handleModeSelect,
   };
 };

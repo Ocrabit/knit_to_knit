@@ -43,6 +43,56 @@ export const getRemSize = () => {
   return parseFloat(getComputedStyle(document.documentElement).fontSize);
 };
 
+export const getAffectedCells = (row, col, size, grid, shape = 'square') => {
+  const halfSize = Math.floor(size / 2);
+  const affectedCells = [];
+
+  for (let i = -halfSize; i <= halfSize; i++) {
+    for (let j = -halfSize; j <= halfSize; j++) {
+      const newRow = row + i;
+      const newCol = col + j;
+
+      // Check grid boundaries
+      if (newRow >= 0 && newRow < grid.length && newCol >= 0 && newCol < grid[0].length) {
+        // Apply shape logic
+        if (shape === 'square' || (shape === 'circle' && Math.sqrt(i * i + j * j) <= halfSize)) {
+          affectedCells.push({ row: newRow, col: newCol });
+        }
+      }
+    }
+  }
+
+  return affectedCells;
+};
+
+import { useEffect } from "react";
+export const useUndoRedo = (handleUndo, handleRedo) => {
+  useEffect(() => {
+    const keydownHandler = (e) => {
+      const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
+      const isCmdPressed = isMac ? e.metaKey : e.ctrlKey;
+
+      // Cmd + Z or Ctrl + Z for undo
+      if (isCmdPressed && e.key === "z" && !e.shiftKey) {
+        e.preventDefault(); // Prevent default browser behavior
+        handleUndo();
+      }
+
+      // Cmd + Shift + Z or Ctrl + Shift + Z for redo
+      if (isCmdPressed && e.key === "z" && e.shiftKey) {
+        e.preventDefault(); // Prevent default browser behavior
+        handleRedo();
+      }
+    };
+
+    window.addEventListener("keydown", keydownHandler);
+
+    return () => {
+      window.removeEventListener("keydown", keydownHandler);
+    };
+  }, [handleUndo, handleRedo]);
+};
+
 export class ColorMapper {
   constructor(LOCAL_STORAGE_KEY) {
     const storedColorToIdMap = JSON.parse(getLocalStorageProperty(LOCAL_STORAGE_KEY, 'colorToIdMap') || '{}');
