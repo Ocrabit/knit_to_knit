@@ -25,6 +25,9 @@ push-react:
 connect-aws:
 	ssh -i /Users/marcocassar/PycharmProjects/knitting_project_versions/knit_to_knit_v2/KnitToKnitPair.pem ec2-user@18.119.122.236
 
+push-nginx.conf:
+	scp -i KnitToKnitPair.pem -r /Users/marcocassar/PycharmProjects/knitting_project_versions/knit_to_knit_v2/nginx/nginx.conf ec2-user@18.119.122.236:/home/ec2-user/nginx/
+
 push-docker-compose.yml:
 	scp -i KnitToKnitPair.pem -r /Users/marcocassar/PycharmProjects/knitting_project_versions/knit_to_knit_v2/docker-compose.yml ec2-user@18.119.122.236:/home/ec2-user/
 
