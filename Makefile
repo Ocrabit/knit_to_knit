@@ -1,42 +1,27 @@
-compose-start:
-	docker-compose up --remove-orphans $(options)
+# Local development commands
+up:
+	docker compose up -d
 
-compose-stop:
-	docker-compose down --remove-orphans $(options)
+down:
+	docker compose down
 
-compose-manage:
-	docker-compose run --rm $(options) website python manage.py $(cmd)
+rebuild:
+	docker compose up -d --build
 
-docker-prune-all:
+logs:
+	docker compose logs -f
+
+# Django management commands
+manage:
+	docker compose run --rm website python manage.py $(cmd)
+
+# Clean up
+prune:
 	docker system prune -a --volumes
 
-connect-website:
-	docker exec -it knit_to_knit_v2-website-1 /bin/bash
+# Shell access
+shell-django:
+	docker compose exec website /bin/bash
 
-connect-postgres:
-	docker exec -it knit_to_knit_v2-postgres-1 psql -U postgres
-
-remove_unamed_volumes:
-	docker volume ls -q | grep -E '^[0-9a-f]{64}$' | xargs -r docker volume rm
-
-push-react:
-	scp -i KnitToKnitPair.pem -r /Users/marcocassar/PycharmProjects/knitting_project_versions/knit_to_knit_v2/frontend/dist/* ec2-user@18.119.122.236:/home/ec2-user/backend/staticfiles/react_dist/
-
-connect-aws:
-	ssh -i /Users/marcocassar/PycharmProjects/knitting_project_versions/knit_to_knit_v2/KnitToKnitPair.pem ec2-user@18.119.122.236
-
-push-nginx.conf:
-	scp -i KnitToKnitPair.pem -r /Users/marcocassar/PycharmProjects/knitting_project_versions/knit_to_knit_v2/nginx/nginx.conf ec2-user@18.119.122.236:/home/ec2-user/nginx/
-
-push-docker-compose.yml:
-	scp -i KnitToKnitPair.pem -r /Users/marcocassar/PycharmProjects/knitting_project_versions/knit_to_knit_v2/docker-compose.yml ec2-user@18.119.122.236:/home/ec2-user/
-
-push-settings.py:
-	scp -i KnitToKnitPair.pem -r /Users/marcocassar/PycharmProjects/knitting_project_versions/knit_to_knit_v2/backend/core/settings.py ec2-user@18.119.122.236:/home/ec2-user/backend/core/
-
-push-.env:
-	scp -i KnitToKnitPair.pem -r /Users/marcocassar/PycharmProjects/knitting_project_versions/knit_to_knit_v2/.env ec2-user@18.119.122.236:/home/ec2-user/
-
-push-requirements:
-	scp -i KnitToKnitPair.pem -r /Users/marcocassar/PycharmProjects/knitting_project_versions/knit_to_knit_v2/backend/requirements/* ec2-user@18.119.122.236:/home/ec2-user/backend/requirements/
-
+shell-db:
+	docker compose exec postgres psql -U $(POSTGRES_USER) -d $(POSTGRES_DB)

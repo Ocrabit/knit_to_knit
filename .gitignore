@@ -1,2 +1,13 @@
-/KnitToKnitPair.pem
-/.env
+.idea/
+
+*.env
+.env.*
+static/
+staticfiles/
+*.log
+*.pem
+__pycache__/
+*.pyc
+.DS_Store
+task-definition.json
+deploy.sh

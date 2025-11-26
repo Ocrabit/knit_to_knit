@@ -3,6 +3,7 @@ import shutil
 
 from django.conf import settings
 from django.db import models
+from django.core.files.storage import default_storage
 
 # Create your models here.
 from django.db import models
@@ -38,11 +39,8 @@ class Pattern(models.Model):
     )
 
     def delete(self, *args, **kwargs):
-        folder_path = os.path.join(settings.MEDIA_ROOT, f'patterns/pattern_{self.id}/')
-
-        if os.path.exists(folder_path):
-            shutil.rmtree(folder_path)
-
+        # File cleanup is handled by the FileField in SeparatedSweater
+        # No need to manually delete files here
         super().delete(*args, **kwargs)
 
     def __str__(self):

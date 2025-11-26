@@ -190,41 +190,52 @@ DATABASES = {
         'PASSWORD': env('POSTGRES_PASSWORD'),
         'HOST': env('POSTGRES_HOST'),
         'PORT': '5432',
-        'OPTIONS': {
-            'sslmode': 'require',  # Enforces SSL
-        },
     }
 }
 
-# **** More AWS WOOT ****
-# S3 Bucket Settings
-AWS_STORAGE_BUCKET_NAME = 'knittoknit-media'
-AWS_S3_REGION_NAME = 'us-east-2'  # e.g., 'us-east-1'
-AWS_QUERYSTRING_AUTH = False  # Disable query parameter authentication for public URLs
+# **** Storage Configuration - Based on STAGE ****
+STAGE = env('STAGE', default='local')
 
-# Optional: Cache Control Headers
-AWS_S3_OBJECT_PARAMETERS = {
-    'CacheControl': 'max-age=86400',
-}
+# Set AWS variables for compatibility (views.py references these)
+AWS_STORAGE_BUCKET_NAME = env('AWS_STORAGE_BUCKET_NAME', default='knittoknit-media')
+AWS_S3_REGION_NAME = env('AWS_S3_REGION_NAME', default='us-east-2')
 
-# Media Files Storage
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-STORAGES = {
-    "default": {
-        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
-        "OPTIONS": {
-            "bucket_name": AWS_STORAGE_BUCKET_NAME,
-            "region_name": AWS_S3_REGION_NAME,
-            "querystring_auth": AWS_QUERYSTRING_AUTH,
-            "object_parameters": AWS_S3_OBJECT_PARAMETERS,
+if STAGE == 'local':
+    # Local file storage for development
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
         },
-    },
-    "staticfiles": {
-        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
-    },
-}
-MEDIA_ROOT = 'media'
-MEDIA_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com/'
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
+else:
+    # S3 storage for production
+    AWS_QUERYSTRING_AUTH = False
+    AWS_S3_OBJECT_PARAMETERS = {
+        'CacheControl': 'max-age=86400',
+    }
+
+    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+    STORAGES = {
+        "default": {
+            "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+            "OPTIONS": {
+                "bucket_name": AWS_STORAGE_BUCKET_NAME,
+                "region_name": AWS_S3_REGION_NAME,
+                "querystring_auth": AWS_QUERYSTRING_AUTH,
+                "object_parameters": AWS_S3_OBJECT_PARAMETERS,
+            },
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
+    MEDIA_ROOT = 'media'
+    MEDIA_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com/'
 
 
 # Password validation

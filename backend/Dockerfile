@@ -8,6 +8,10 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
+# Create virtual environment in /opt/venv
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
 # Install Python dependencies
 COPY requirements/prod.txt requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
@@ -27,8 +31,6 @@ RUN echo "Checking .env file..." && \
     cat /app/.env || echo ".env not found" \
 
 
-# Collect static files
-RUN python manage.py collectstatic --noinput
 # Ensure the STATIC_ROOT directory exists and is writable
 RUN mkdir -p /app/staticfiles && chmod -R 755 /app/staticfiles
 

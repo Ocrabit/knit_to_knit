@@ -1,4 +1,31 @@
 services:
+  frontend-build:  # Build react if needed
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: build
+    volumes:
+      - ./backend/static/react_dist:/output
+    command: sh -c "cp -r /app/dist/* /output/"
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   # Django website service
   website:
     build:
@@ -6,7 +33,8 @@ services:
       dockerfile: Dockerfile  # Dockerfile for Django backend
     environment:
       DJANGO_SETTINGS_MODULE: core.settings
-      DEBUG: 'False'
+      STAGE: ${STAGE}
+      DEBUG: ${DEBUG}
       SECRET_KEY: ${SECRET_KEY}
       CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS}
       DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS}
@@ -20,20 +48,24 @@ services:
     env_file:
       - .env
     volumes:
-      - ./backend:/app
       - staticfiles:/app/staticfiles
     ports:
       - "8000:8000"
     restart: unless-stopped
     networks:
       - internal
+    depends_on:
+      frontend-build:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
     command: gunicorn core.wsgi:application --bind 0.0.0.0:8000
 
   nginx:
     image: nginx:alpine
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
-      - ./backend/staticfiles:/app/staticfiles:ro
+      - ./nginx/nginx.${STAGE}.conf:/etc/nginx/conf.d/default.conf:ro
+      - staticfiles:/app/staticfiles:ro
       - /etc/letsencrypt:/etc/letsencrypt:ro
       - certbot_www:/var/www/certbot:ro
     ports:
@@ -60,3 +92,5 @@ networks:
 volumes:
   certbot_www:
   staticfiles:
+  postgres_data:
+  react_build:

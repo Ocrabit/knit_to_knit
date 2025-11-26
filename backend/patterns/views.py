@@ -22,23 +22,22 @@ from botocore.exceptions import ClientError
 logger = logging.getLogger('patterns')
 
 
-def custom_exist_check(bucket_name, key):
+def custom_exist_check(file_path):
     """
-    Check if a file exists in an S3 bucket using boto3.
-    :param bucket_name: The name of the S3 bucket.
-    :param key: The key (path) to the file in the bucket.
+    Check if a file exists in storage (either local filesystem or S3).
+    :param file_path: The path to the file in storage.
     :return: True if the file exists, False otherwise.
     """
-    s3 = boto3.client('s3')
     try:
-        s3.head_object(Bucket=bucket_name, Key=key)
-        logger.info(f"File exists in S3: {key}")
-        return True
-    except ClientError as e:
-        if e.response['Error']['Code'] == "404":
-            logger.error(f"File not found in S3: {key}")
+        # Use Django's default_storage which handles both local and S3
+        exists = default_storage.exists(file_path)
+        if exists:
+            logger.info(f"File exists in storage: {file_path}")
         else:
-            logger.error(f"Error accessing S3: {e}")
+            logger.error(f"File not found in storage: {file_path}")
+        return exists
+    except Exception as e:
+        logger.error(f"Error checking file existence: {e}")
         return False
 
 
@@ -114,12 +113,13 @@ def compile_pattern(request):
                          color_map=color_map)
                 file_buffer.seek(0)
 
-                logger.info("Saving file to S3 bucket: %s", settings.AWS_STORAGE_BUCKET_NAME)
+                storage_backend = 'S3' if settings.STAGE != 'local' else 'local storage'
+                logger.info("Saving file to %s", storage_backend)
                 separated_sweater.sweater_file.save('pattern_pieces.npz', ContentFile(file_buffer.read()))
-                logger.info("File successfully saved to S3.")
+                logger.info("File successfully saved to %s.", storage_backend)
 
                 separated_sweater.save()
-                logger.info("Pattern file saved successfully to S3.")
+                logger.info("Pattern file saved successfully to %s.", storage_backend)
 
                 return Response({
                     "message": "Pattern created successfully",
@@ -143,8 +143,8 @@ def get_pattern_mode_data(request, pattern_id):
     # Construct the file path
     file_path = f'patterns/pattern_{pattern_id}/{file_name}'
 
-    if not custom_exist_check(settings.AWS_STORAGE_BUCKET_NAME, file_path):
-        logger.error('Error: File does not exist at the specified path in S3.')
+    if not custom_exist_check(file_path):
+        logger.error('Error: File does not exist at the specified path in storage.')
         return Response({'error': f'File not found: {file_path}'}, status=404)
 
     # Define a mapping for view_mode to index in the tuple
@@ -158,7 +158,7 @@ def get_pattern_mode_data(request, pattern_id):
         return Response({'error': f"Invalid view mode '{view_mode}'"}, status=400)
 
     try:
-        # Load the .npz file from S3
+        # Load the .npz file from storage
         with default_storage.open(file_path, 'rb') as file:
             npz_data = np.load(file, allow_pickle=True)
 
@@ -197,12 +197,12 @@ def get_pattern_file_data(request, pattern_id):
     file_path = f'patterns/pattern_{pattern_id}/{file_name}'
     logger.info('file path is %s', file_path)
 
-    if not custom_exist_check(settings.AWS_STORAGE_BUCKET_NAME, file_path):
-        logger.error('Error: File does not exist at the specified path in S3.')
+    if not custom_exist_check(file_path):
+        logger.error('Error: File does not exist at the specified path in storage.')
         return Response({'error': f'File not found: {file_path}'}, status=404)
 
     try:
-        # Load the .npz file from S3
+        # Load the .npz file from storage
         with default_storage.open(file_path, 'rb') as file:
             npz_data = np.load(file, allow_pickle=True)
 
@@ -265,7 +265,7 @@ def save_pattern_changes(request, pattern_id):
         new_grid_array = np.array(new_grid_data)
         logger.info('new grid converted: %s', new_grid_array)
 
-        # Load the .npz file from S3
+        # Load the .npz file from storage
         with default_storage.open(file_path, 'rb') as file:
             npz_data = np.load(file, allow_pickle=True)
 
@@ -285,7 +285,7 @@ def save_pattern_changes(request, pattern_id):
             file_content['color_map'] = color_map
             logger.info(f"Updated color_map data for section {section}. Color_Map consists of: %s", color_map)
 
-        # Save the updated content back to the .npz file in S3
+        # Save the updated content back to the .npz file in storage
         with default_storage.open(file_path, 'wb') as file:
             np.savez(file, **file_content)
         logger.info('File successfully updated.')
