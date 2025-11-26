@@ -25,20 +25,36 @@ logger = logging.getLogger('patterns')
 def custom_exist_check(file_path):
     """
     Check if a file exists in storage (either local filesystem or S3).
+    Uses boto3 directly for S3 because default_storage.exists() is unreliable.
     :param file_path: The path to the file in storage.
     :return: True if the file exists, False otherwise.
     """
-    try:
-        # Use Django's default_storage which handles both local and S3
-        exists = default_storage.exists(file_path)
-        if exists:
-            logger.info(f"File exists in storage: {file_path}")
-        else:
-            logger.error(f"File not found in storage: {file_path}")
-        return exists
-    except Exception as e:
-        logger.error(f"Error checking file existence: {e}")
-        return False
+    # Check if using S3 or local storage
+    if settings.STAGE == 'local':
+        # Use default_storage for local filesystem
+        try:
+            exists = default_storage.exists(file_path)
+            if exists:
+                logger.info(f"File exists in local storage: {file_path}")
+            else:
+                logger.error(f"File not found in local storage: {file_path}")
+            return exists
+        except Exception as e:
+            logger.error(f"Error checking file existence: {e}")
+            return False
+    else:
+        # Use boto3 directly for S3 (default_storage.exists() is broken for S3)
+        s3 = boto3.client('s3')
+        try:
+            s3.head_object(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=file_path)
+            logger.info(f"File exists in S3: {file_path}")
+            return True
+        except ClientError as e:
+            if e.response['Error']['Code'] == "404":
+                logger.error(f"File not found in S3: {file_path}")
+            else:
+                logger.error(f"Error accessing S3: {e}")
+            return False
 
 
 # Create your views here.

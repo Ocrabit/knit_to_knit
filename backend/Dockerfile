@@ -23,17 +23,6 @@ ENTRYPOINT ["/app/entrypoint.sh"]
 # Copy application code
 COPY . .
 
-# Collect static files
-# Check if the .env file is present
-# Add this debug step to check the .env file
-RUN echo "Checking .env file..." && \
-    ls -l /app/.env && \
-    cat /app/.env || echo ".env not found" \
-
-
-# Ensure the STATIC_ROOT directory exists and is writable
-RUN mkdir -p /app/staticfiles && chmod -R 755 /app/staticfiles
-
 # Expose port
 EXPOSE 8000
 

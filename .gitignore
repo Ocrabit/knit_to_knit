@@ -2,8 +2,12 @@
 
 *.env
 .env.*
+
+# Django
 static/
 staticfiles/
+media/
+
 *.log
 *.pem
 __pycache__/
