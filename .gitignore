@@ -1,7 +1,7 @@
 .idea/
-
 *.env
 .env.*
+local/
 
 # Django
 static/

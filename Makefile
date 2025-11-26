@@ -1,3 +1,6 @@
+include .env
+export
+
 # Local development commands
 up:
 	docker-compose up -d
@@ -10,6 +13,10 @@ rebuild:
 
 logs:
 	docker-compose logs -f
+
+# ec2 quick connect
+ec2:
+	ssh -i $(PEM_FILE) ec2-user@$(EC2_IP)
 
 # Django management commands
 manage:
@@ -24,5 +31,4 @@ shell-django:
 	docker-compose exec website /bin/bash
 
 shell-db:
-	@eval $$(grep POSTGRES_USER .env) && eval $$(grep POSTGRES_DB .env) && \
-	docker-compose exec postgres psql -U $$POSTGRES_USER -d $$POSTGRES_DB
+	docker-compose exec postgres psql -U $(POSTGRES_USER) -d $(POSTGRES_DB)
