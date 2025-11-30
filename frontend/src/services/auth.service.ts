@@ -18,9 +18,9 @@ export const axiosInstance = axios.create({
 axiosInstance.interceptors.response.use(
   response => response,
   error => {
-    if (error.response?.status === 403) {
+    if (error.response?.status === 403 && error.response?.data?.error?.toLowerCase().includes('session')) {
       console.error("Session expired. Redirecting to login...");
-      // Redirect logic here
+      window.location.href = '/';
     }
     return Promise.reject(error);
   }

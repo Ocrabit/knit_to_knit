@@ -1,9 +1,11 @@
 # RecalculateUserPatterns.py
 from django.core.management.base import BaseCommand, CommandError
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from ...models import Pattern
 from ...views import recalculate_pattern
 from rest_framework.test import APIRequestFactory, force_authenticate
+
+User = get_user_model()
 
 
 class Command(BaseCommand):

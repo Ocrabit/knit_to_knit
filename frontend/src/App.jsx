@@ -18,6 +18,7 @@ import Sidebar from "./components/Sidebar/Sidebar";
 import About from './pages/About/About.jsx';
 import Contact from './pages/Contact/Contact.jsx';
 import Create from './pages/Create.jsx';
+import Designs from './pages/Designs/Designs.jsx';
 import Patterns from './pages/Patterns/Patterns.jsx';
 import Profile from "./pages/Profile";
 import Dashboard from "./pages/dashboard/Dashboard.jsx";
@@ -69,6 +70,18 @@ class App extends React.Component {
     }
   };
 
+  // Test User Login
+  loginAsTestUser = async (event) => {
+    event.preventDefault();
+    try {
+      const response = await authService.login('test_user', 'TestPassword123!');
+      this.setState({ isLoggedIn: true, user: response.user });
+    } catch (error) {
+      this.setState({ error: 'Test user login failed' });
+      console.error(error);
+    }
+  };
+
   // Logout Method
   logout = async (event) => {
     event.preventDefault();
@@ -115,6 +128,7 @@ class App extends React.Component {
                         <Route path="/account-settings" element={<AccountSettings/>}/>
                         <Route path="/create-design" element={<Create/>}/>
                         <Route path="/patterns" element={<Patterns/>}/>
+                        <Route path="/designs" element={<Designs/>}/>
                         <Route path="/stepguide/:patternId" element={<StepGuide/>}/>
                       </Routes>
                     </div>
@@ -125,48 +139,81 @@ class App extends React.Component {
           </HelmetProvider>
       )
     } else {
-      return (
-          <form
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                backgroundColor: "#242424", // Background color
-                color: "white",             // Text color to be visible on dark background
-                width: "100vw",
-                height: "100vh",
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-              onSubmit={this.login}
-          >
-            {error && <div style={{color: 'red'}}>{error}</div>}
-            <label htmlFor="username">Username</label>
-            <input
-                type="text"
-                name="username"
-                id="username"
-                value={username}
-                onChange={this.handleInputChange}
-                required
-                autoComplete="username"
-            />
+      return <div style={{
+        backgroundColor: "#242424",
+        width: "100vw",
+        height: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        position: "relative"
+      }}>
+        <form
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              color: "white",
+              flex: 1,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+            onSubmit={this.login}
+        >
+          {error && <div style={{color: 'red'}}>{error}</div>}
+          <label htmlFor="username">Username</label>
+          <input
+              type="text"
+              name="username"
+              id="username"
+              value={username}
+              onChange={this.handleInputChange}
+              required
+              autoComplete="username"
+          />
 
-            <label htmlFor="password">Password</label>
-            <input
-                type="password"
-                name="password"
-                id="password"
-                value={password}
-                onChange={this.handleInputChange}
-                required
-                autoComplete="current-password"
-            />
+          <label htmlFor="password">Password</label>
+          <input
+              type="password"
+              name="password"
+              id="password"
+              value={password}
+              onChange={this.handleInputChange}
+              required
+              autoComplete="current-password"
+          />
 
-            <button type="submit" style={{marginTop: "10px"}}>
-              Login
-            </button>
-          </form>
-      )
+          <button type="submit" style={{marginTop: "10px"}}>
+            Login
+          </button>
+        </form>
+
+        {/* Test User Section */}
+        {<div style={{
+                padding: "20px",
+                borderTop: "1px solid #444",
+                textAlign: "center",
+                color: "white",
+                backgroundColor: "#1a1a1a"
+            }}>
+                <p style={{marginBottom: "10px", fontSize: "14px"}}>
+                    Don't have an account? Check out the platform by signing in as a test user!
+                </p>
+                <button
+                    type="button"
+                    onClick={this.loginAsTestUser}
+                    style={{
+                        marginTop: "10px",
+                        backgroundColor: "#6c757d",
+                        padding: "8px 16px",
+                        border: "none",
+                        borderRadius: "4px",
+                        color: "white",
+                        cursor: "pointer"
+                    }}
+                >
+                    Login as Test User
+                </button>
+            </div>}
+      </div>
     }
   }
 }

@@ -1,9 +1,11 @@
 from django.test import TestCase, RequestFactory
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from rest_framework.test import force_authenticate
 
 from .models import Pattern
 from .views import recalculate_pattern
+
+User = get_user_model()
 
 # Useless right now
 class TestRecalculatePattern(TestCase):

@@ -12,7 +12,7 @@ import {
 const PatternView = () => {
   const { patternId } = useParams(); // Get the pattern ID from the URL
   const [selectedSection, setSelectedSection] = useState(getLocalStorageProperty('SelectedSection', 'selectedSection') || 'front_torso');
-  const [viewMode, setViewMode] = useState(getLocalStorageProperty('ViewMode', 'viewMode') || 'shape'); //'shape', 'color','stitch_type'
+  const [viewMode, setViewMode] = useState(getLocalStorageProperty('ViewMode', 'viewMode') || 'color'); //'shape', 'color','stitch_type'
   const [gridData, setGridData] = useState({
     shape: [[]],
     color: [[]],
@@ -144,7 +144,7 @@ const PatternView = () => {
       setChanges(prevChanges => ({ ...prevChanges, [viewMode]: {} }));
     } catch (error) {
       console.error('Error saving changes:', error);
-      alert('Error saving changes.');
+      alert(error.message || 'Error saving changes.');
     }
   };
 

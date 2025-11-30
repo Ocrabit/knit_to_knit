@@ -7,8 +7,9 @@ from django.core.files.storage import default_storage
 
 # Create your models here.
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 
+User = get_user_model()
 
 # Create your models here.
 def sweater_upload_path(instance, filename):

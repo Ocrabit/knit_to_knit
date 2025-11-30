@@ -51,13 +51,15 @@ const Navbar = ({ isAuthenticated, user, username, logout }) => {
                   data-bs-toggle="dropdown"
                   aria-expanded="false"
                 >
-                  {/* If profilePicture is not available, use a placeholder image */}
-                  <img
-                    className="rounded-circle account-img"
-                    //src={user.UserProfile.image.url || '/assets/icons/profile_placeholder.png'}
-                    alt="P"
-                    style={{ width: '64px', height: '64px', marginRight: '10px' }}
-                  />
+                  {/* Only show profile picture if it exists */}
+                  {user?.profile_picture && (
+                    <img
+                      className="rounded-circle account-img"
+                      src={user.profile_picture}
+                      alt="Profile"
+                      style={{ width: '64px', height: '64px', marginRight: '10px' }}
+                    />
+                  )}
                   {username || 'Guest'}
                 </a>
                 <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">

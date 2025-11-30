@@ -189,6 +189,6 @@ export const savePatternChanges = async ({
     return response.status;
   } catch (error: any) {
     console.error('API error:', error);
-    throw new Error(error.response?.data?.message || 'Failed to save pattern changes.');
+    throw new Error(error.response?.data?.error || 'Failed to save pattern changes.');
   }
 };

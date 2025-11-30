@@ -79,6 +79,9 @@ def compile_pattern(request):
     if not session_key:
         return Response({'error': 'No session key found'}, status=403)
 
+    if request.user.is_test_account:
+        return Response({'error': 'Test accounts cannot create new patterns'}, status=status.HTTP_403_FORBIDDEN)
+
     logger.info("Received request data:", request.data)
 
     # Determine pattern type and redirect to the appropriate serializer
@@ -263,6 +266,10 @@ def get_pattern_file_data(request, pattern_id):
 @permission_classes([IsAuthenticated])
 def save_pattern_changes(request, pattern_id):
     logger.info('Save Pattern Changes View is called')
+
+    if request.user.is_test_account:
+        return Response({'error': 'Test accounts cannot save pattern changes'}, status=status.HTTP_403_FORBIDDEN)
+
     file_name = 'pattern_pieces.npz'
     section = request.data.get('section')
     view_mode = request.data.get('view_mode')
