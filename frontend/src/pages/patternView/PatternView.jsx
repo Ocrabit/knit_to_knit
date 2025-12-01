@@ -8,9 +8,11 @@ import {
   getLocalStorageProperty,
   updateLocalStorageProperty
 } from "../../components/PatternEditor/utils.js";
+import { useTheme } from '../../context/ThemeContext';
 
 const PatternView = () => {
   const { patternId } = useParams(); // Get the pattern ID from the URL
+  const { setIsDarkBackground, setIsEditorPage } = useTheme();
   const [selectedSection, setSelectedSection] = useState(getLocalStorageProperty('SelectedSection', 'selectedSection') || 'front_torso');
   const [viewMode, setViewMode] = useState(getLocalStorageProperty('ViewMode', 'viewMode') || 'color'); //'shape', 'color','stitch_type'
   const [gridData, setGridData] = useState({
@@ -27,6 +29,15 @@ const PatternView = () => {
 
   const LOCAL_STORAGE_KEY = `patternEditor-${patternId}-${selectedSection}-${viewMode}`;
   const colorMapper = useRef(new ColorMapper(`patternEditor-${patternId}-${selectedSection}-color`)).current;
+
+  useEffect(() => {
+    setIsDarkBackground(true);
+    setIsEditorPage(true);
+    return () => {
+      setIsDarkBackground(false);
+      setIsEditorPage(false);
+    };
+  }, [setIsDarkBackground, setIsEditorPage]);
 
 
   useEffect(() => {

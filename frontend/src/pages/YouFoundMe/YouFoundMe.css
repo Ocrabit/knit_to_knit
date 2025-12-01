@@ -1,0 +1,16 @@
+/* src/pages/YouFoundMe/YouFoundMe.css */
+
+.you-found-me-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: var(--cream);
+}
+
+.you-found-me-container p {
+  font-size: 1rem;
+  font-family: var(--font-family-primary);
+  font-weight: var(--font-weight-regular);
+  color: var(--walnut);
+}

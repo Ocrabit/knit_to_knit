@@ -1,39 +1,47 @@
-/* src/pages/About/About.css */
-
-.about-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem 1rem;
-  background-color: #f7e4d0; /* Warm, welcoming background color */
-  color: #8b5e3c; /* Brown for knitting warmth */
-  min-height: 100vh;
-  text-align: center;
-
-  margin: auto;
+.about-page {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0 5vh;
 }
 
-.about-container h1 {
-  font-size: 2.5rem;
-  font-family: "Courier New", Courier, monospace; /* Cozy, handmade style */
-  margin-bottom: 1.5rem;
-  border-bottom: 2px solid #f0c987;
+.about-page p {
+  color: var(--cashmere);
 }
 
-.about-container h4 {
-  margin-top: 1.5rem;
-  font-size: 1.5rem;
-  color: #6b4226;
-  font-family: "Courier New", Courier, monospace;
-  margin-bottom: 1rem;
-  border-bottom: 2px solid #f0c987;
-  padding-bottom: 0.5rem;
-  letter-spacing: 1px;
+.about-title {
+  position: relative;
+  padding-bottom: 1rem;
 }
 
-.about-container p {
-  font-size: 1.2rem;
-  line-height: 1.6;
-  margin-bottom: 1rem;
+.about-title::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  height: 3px;
+  background: var(--beige);
+  border-radius: 2px;
+}
+
+.about-subtitle {
+  position: relative;
+  padding-bottom: 0.75rem;
+}
+
+.about-subtitle::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 2px;
+  background: var(--beige);
+  border-radius: 2px;
 }

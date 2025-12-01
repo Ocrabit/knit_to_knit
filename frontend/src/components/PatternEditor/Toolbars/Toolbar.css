@@ -1,29 +1,30 @@
 #top-toolbar {
   position: fixed;
-  top: calc(var(--navbar-height) + 5px);
+  top: 10px;
   left: 50%;
   transform: translateX(-50%);
   justify-content: center;
   display: flex;
-  flex-direction: row; /* Stack the elements vertically */
-  gap: 10px; /* Space between the dropdowns */
+  flex-direction: row;
+  gap: 10px;
   padding: 10px;
-  background-color: #8b5e3c; /* Match the toolbox background color */
+  background-color: var(--cashmere);
   z-index: 1000;
-  border-radius: 20px; /* Rounded corners for a compact look */
-  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
+  border-radius: 20px;
+  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
 }
 
 .top-toolbar-select {
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
-  background-color: #fff5e1;
+  background-color: var(--wool);
   border: none;
   border-radius: 30px;
   padding: 10px 15px;
   font-size: 16px;
-  color: #333;
+  font-family: var(--font-family-primary);
+  color: var(--black-coffee);
   cursor: pointer;
   box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
   outline: none;
@@ -35,24 +36,24 @@
 }
 
 .top-toolbar-select option {
-  background-color: #fff5e1; /* Background color of options */
+  background-color: var(--wool);
   padding: 10px;
 }
 
 /* Rounded vertical toolbox on the right-hand side */
 #side-toolbar {
   position: fixed;
-  top: calc(var(--navbar-height) + 20px); /* Start below the navbar */
+  top: 120px;
   right: 10px;
   width: var(--toolbox-width);
-  background-color: #8b5e3c;
+  background-color: var(--cashmere);
   border-radius: 30px;
   padding: 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 15px;
-  z-index: 1000; /* Ensure it's on top */
+  z-index: 1000;
   box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
 }
 
@@ -61,7 +62,7 @@
   user-select: none;
   -webkit-user-drag: none;
   pointer-events: auto;
-  background-color: #fff5e1;
+  background-color: var(--wool);
   border: none;
   border-radius: 50%;
   width: 40px;
@@ -74,13 +75,21 @@
 }
 
 .side-toolbar-button.active {
-  background-color: #f0c987; /* Active button highlight */
+  background-color: var(--beige);
   box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
-  transform: scale(1.1); /* Slightly enlarge the active button */
+  transform: scale(1.1);
 }
 
 .side-toolbar-button:hover {
-  background-color: #f0c987; /* Slightly change the color on hover */
+  background-color: var(--beige);
+}
+
+.undo-redo-button {
+  font-size: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--walnut);
 }
 
 img {
@@ -91,13 +100,14 @@ img {
 /* Popup for tool options */
 .tool-popup {
   position: fixed;
-  background-color: #8b5e3c;
-  border: 2px ridge #f0c987;
+  background-color: var(--cashmere);
+  border: 2px ridge var(--beige);
   border-radius: 20px;
   box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
   z-index: 1001;
-  color: #fff5e1;
+  color: var(--cream);
   font-size: 14px;
+  font-family: var(--font-family-primary);
   display: flex;
   align-items: center;
   flex-direction: column;
@@ -107,7 +117,7 @@ img {
 /* Popup label styling */
 .tool-popup label {
   margin-bottom: .1rem;
-  font-weight: bold;
+  font-weight: var(--font-weight-bold);
   text-align: center;
 }
 
@@ -117,9 +127,10 @@ img {
   width: 100%;
   border: none;
   border-radius: 10px;
-  background-color: #fff5e1;
-  color: #8b5e3c;
+  background-color: var(--wool);
+  color: var(--walnut);
   font-size: 14px;
+  font-family: var(--font-family-primary);
   box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.2);
   text-align: center;
 }
@@ -133,17 +144,19 @@ img {
 /* Button in popup */
 .tool-popup button {
   margin-top: 8px;
-  background-color: #f0c987;
+  background-color: var(--beige);
   border: none;
   border-radius: 10px;
-  color: #8b5e3c;
+  color: var(--walnut);
   cursor: pointer;
   font-size: 14px;
+  font-family: var(--font-family-primary);
+  font-weight: var(--font-weight-bold);
   box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.3);
 }
 
 .tool-popup button:hover {
-  background-color: #d99a60;
+  background-color: var(--cashmere);
 }
 
 /* In your CSS file or a styled component */

@@ -1,0 +1,71 @@
+/* Unified Card Component */
+.card {
+  background-color: var(--wool);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  font-family: var(--font-family-primary);
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+}
+
+.card h2,
+.card h3,
+.card h4 {
+  color: var(--walnut);
+  margin-bottom: 0.75rem;
+  font-weight: var(--font-weight-bold);
+}
+
+.card h2 {
+  font-size: 1.5rem;
+}
+
+.card h3 {
+  font-size: 1.25rem;
+}
+
+.card h4 {
+  font-size: 1.125rem;
+}
+
+.card p {
+  color: var(--cashmere);
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.card small {
+  color: var(--walnut);
+  font-size: 0.875rem;
+  display: block;
+  opacity: 0.7;
+}
+
+/* Card Container for grid layouts */
+.card-container {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.card-container .card,
+.card-container .add-card {
+  flex: 0 1 calc(33.333% - 1rem);
+  min-width: 280px;
+  max-width: calc(33.333% - 1rem);
+}
+
+@media (max-width: 768px) {
+  .card-container .card,
+  .card-container .add-card {
+    flex: 1 1 100%;
+    max-width: 100%;
+  }
+}

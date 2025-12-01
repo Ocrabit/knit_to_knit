@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { axiosInstance } from "../../services/auth.service";
-import './Dashboard.css';
-import '../../styles/Cards.css'
+import '../../styles/pages.css';
+import Card from '../../components/Card/Card';
+import AddCard from '../../components/Card/AddCard';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const [recentPatterns, setRecentPatterns] = useState([]);
   const [recentGrids, setRecentGrids] = useState([]);
 
@@ -33,51 +35,38 @@ const Dashboard = () => {
   };
 
   return (
-      <div className="page-container">
-          {/* Welcome/Thank You message */}
-          <div className="welcome-message">
-              <h2>Welcome!</h2>
-              <p>Thank you for trying us out! Here’s a quick look at your recent patterns and grid designs.</p>
-          </div>
-          <h1>Dashboard</h1>
+      <div className="page-container centered">
+          <h1>Your Dashboard</h1>
           {/* Recent Patterns Section in Card Format */}
           <div className="recent-section">
-              <h3>3 Recent Patterns</h3>
-              <div>
-                  <div className="card-container">
-                      {recentPatterns.map((pattern) => (
-                          <div className="card" key={pattern.id}>
-                              <h2>{pattern.name}</h2>
-                              <p>{pattern.content}</p>
-                              <small>Created at: {new Date(pattern.created_on).toLocaleString()}</small>
-                              <small>Last Edited: {new Date(pattern.edited_on).toLocaleString()}</small>
-                          </div>
-                      ))}
-                  </div>
+              <h3>Recent Patterns</h3>
+              <div className="card-container">
+                  {recentPatterns.map((pattern, index) => (
+                      <Card key={pattern.id} index={index} onClick={() => navigate(`/pattern-view/${pattern.id}`)}>
+                          <h2>{pattern.name}</h2>
+                          <p>{pattern.content}</p>
+                          <small>Created: {new Date(pattern.created_on).toLocaleDateString()}</small>
+                          <small>Edited: {new Date(pattern.edited_on).toLocaleDateString()}</small>
+                      </Card>
+                  ))}
+                  <AddCard onClick={() => navigate('/create-pattern')} label="New Pattern" index={recentPatterns.length} />
               </div>
-              <Link to="/create-pattern" className="quick-link">
-                  Quick Link to New Pattern
-              </Link>
           </div>
 
           {/* Recent Grid Designs Section in Card Format */}
           <div className="recent-section">
-              <h3>3 Recent Grid Designs</h3>
-              <div>
-                  <div className="card-container">
-                      {recentGrids.map((grid) => (
-                          <div className="card" key={grid.id}>
-                              <h2>{grid.name}</h2>
-                              <p>{grid.content}</p>
-                              <small>Created at: {new Date(grid.created_on).toLocaleString()}</small>
-                              <small>Last Edited: {new Date(grid.edited_on).toLocaleString()}</small>
-                          </div>
-                      ))}
-                  </div>
+              <h3>Recent Designs</h3>
+              <div className="card-container">
+                  {recentGrids.map((grid, index) => (
+                      <Card key={grid.id} index={index} onClick={() => navigate(`/design-view/${grid.id}`)}>
+                          <h2>{grid.name}</h2>
+                          <p>{grid.content}</p>
+                          <small>Created: {new Date(grid.created_on).toLocaleDateString()}</small>
+                          <small>Edited: {new Date(grid.edited_on).toLocaleDateString()}</small>
+                      </Card>
+                  ))}
+                  <AddCard onClick={() => navigate('/create-design')} label="New Design" index={recentGrids.length} />
               </div>
-              <Link to="/create-grid" className="quick-link">
-                  Quick Link to New Grid Design
-              </Link>
           </div>
       </div>
   );

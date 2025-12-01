@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { TransformWrapper, TransformComponent, useControls } from "react-zoom-pan-pinch";
 import './GridEditor.css';
 import * as Icons from '../../assets/icons/grid/icon_export';
+import { useTheme } from '../../context/ThemeContext';
 
 // Local storage key for the grid state
 const LOCAL_STORAGE_KEY = 'savedDesign';
@@ -16,6 +17,8 @@ const grid_pixels = getCSSVariable('--square_var');
 const gap_size = getCSSVariable('--gap-var');
 
 const GridEditor = () => {
+  const { setIsDarkBackground, setIsEditorPage } = useTheme();
+
   //Draw Vars
   const [drawActive, setDrawActive] = useState(false); // Draw mode
 
@@ -300,6 +303,9 @@ const GridEditor = () => {
 
   // Set previous selections from storage.
   useEffect(() => {
+    setIsDarkBackground(true);
+    setIsEditorPage(true);
+
     // Load saved marker, color, and active mode from local storage
     const savedMarker = localStorage.getItem('selectedMarker');
     const savedColor = localStorage.getItem('selectedColor');
@@ -331,7 +337,11 @@ const GridEditor = () => {
       setColumns(parseInt(savedColumns, 10));
     }
 
-  }, []);
+    return () => {
+      setIsDarkBackground(false);
+      setIsEditorPage(false);
+    };
+  }, [setIsDarkBackground, setIsEditorPage]);
     const [containerWidth, setContainerWidth] = useState(0);
     const [containerHeight, setContainerHeight] = useState(0);
 

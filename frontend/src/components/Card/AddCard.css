@@ -1,0 +1,95 @@
+/* Add New Card */
+.add-card {
+  background-color: var(--wool);
+  border-radius: 8px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px dashed var(--beige);
+  min-height: 200px;
+}
+
+.add-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-color: var(--walnut);
+}
+
+.add-card-icon {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Corner pieces */
+.corner-piece {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border: 3px solid var(--walnut);
+  border-radius: 4px;
+}
+
+.corner-piece.top-left {
+  top: 0;
+  left: 0;
+  border-right: none;
+  border-bottom: none;
+}
+
+.corner-piece.top-right {
+  top: 0;
+  right: 0;
+  border-left: none;
+  border-bottom: none;
+}
+
+.corner-piece.bottom-left {
+  bottom: 0;
+  left: 0;
+  border-right: none;
+  border-top: none;
+}
+
+.corner-piece.bottom-right {
+  bottom: 0;
+  right: 0;
+  border-left: none;
+  border-top: none;
+}
+
+/* Plus sign */
+.plus-sign {
+  font-size: 3rem;
+  color: var(--walnut);
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
+  user-select: none;
+}
+
+.add-card:hover .plus-sign,
+.add-card:hover .corner-piece {
+  color: var(--black-coffee);
+  border-color: var(--black-coffee);
+}
+
+/* Label */
+.add-card-label {
+  font-size: 1.125rem;
+  color: var(--walnut);
+  font-family: var(--font-family-primary);
+  font-weight: var(--font-weight-bold);
+  text-align: center;
+}
+
+.add-card:hover .add-card-label {
+  color: var(--black-coffee);
+}

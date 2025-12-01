@@ -5,7 +5,7 @@ import './AccountSettings.css'
 
 const AccountSettings = () => {
   return (
-      <div className="settings-container">
+      <div className="settings-container page-container">
           <h1>Settings</h1>
           <ComingSoonCard/>
       </div>

@@ -2,9 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import './PatternCreate.css'
 import { compilePattern } from '../../services/data.service.ts'
 import { useNavigate } from 'react-router-dom';
+import { useTheme } from '../../context/ThemeContext';
 
 const PatternCreate = () => {
   const navigate = useNavigate(); //Initialize navigate
+  const { setIsDarkBackground, setIsEditorPage } = useTheme();
   const [isLoading, setIsLoading] = useState(false); //Loading state
 
   const [pattern, setPattern] = useState({
@@ -17,6 +19,15 @@ const PatternCreate = () => {
   const [torsoChecks, setTorsoChecks] = useState( { ribbing: false, taper: false, neck: false });
   const [sleeveDimensions, setSleeveDimensions] = useState({ width: '', height: '', ribbing: '', taper_offset: '', taper_hem: '', taper_style: '', neck_offset_width: '', neck_offset_height: '', neck_depth: '' });
   const [sleeveChecks, setSleeveChecks] = useState( { ribbing: false, taper: false, neck: false });
+
+  useEffect(() => {
+    setIsDarkBackground(true);
+    setIsEditorPage(true);
+    return () => {
+      setIsDarkBackground(false);
+      setIsEditorPage(false);
+    };
+  }, [setIsDarkBackground, setIsEditorPage]);
 
   const handlePatternChange = (e) => {
     const { name, value } = e.target;

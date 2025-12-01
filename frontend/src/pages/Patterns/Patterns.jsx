@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import {axiosInstance} from '../../services/auth.service'
-import '../../styles/Cards.css'
 import {useNavigate} from "react-router-dom";
+import '../../styles/pages.css';
+import Card from '../../components/Card/Card';
+import AddCard from '../../components/Card/AddCard';
 
 const Patterns = () => {
     const [patterns, setPatterns] = useState([]);
@@ -34,19 +36,22 @@ const Patterns = () => {
     }
 
     return (
-        <div className="page-container">
+        <div className="page-container centered">
             <h1>Your Patterns</h1>
             <div className="card-container">
-                {patterns.map((pattern) => (
-                    <div className="card" key={pattern.id}
-                         onClick={() => navigate(`/pattern-view/${pattern.id}`)}
-                            style={{ cursor: 'pointer' }}>
+                {patterns.map((pattern, index) => (
+                    <Card key={pattern.id} index={index} onClick={() => navigate(`/pattern-view/${pattern.id}`)}>
                         <h2>{pattern.name}</h2>
                         <p>{pattern.content}</p>
                         <small>Created at: {new Date(pattern.created_on).toLocaleString()}</small>
                         <small>Last Edited: {new Date(pattern.edited_on).toLocaleString()}</small>
-                    </div>
+                    </Card>
                 ))}
+                <AddCard
+                    onClick={() => navigate('/create-pattern')}
+                    label="New Pattern"
+                    index={patterns.length}
+                />
             </div>
         </div>
     );

@@ -185,13 +185,17 @@ const SideToolbar = ({
     // Reset button
     buttons.push(<ResetButton key="reset" />);
 
-    buttons.push(<button onClick={handleUndo} key="undo">
-          Undo
-      </button>);
+    buttons.push(
+      <button onClick={handleUndo} key="undo" className="side-toolbar-button undo-redo-button" title="Undo">
+        ⟲
+      </button>
+    );
 
-    buttons.push(<button onClick={handleRedo} key="redo">
-          Redo
-      </button>);
+    buttons.push(
+      <button onClick={handleRedo} key="redo" className="side-toolbar-button undo-redo-button" title="Redo">
+        ⟳
+      </button>
+    );
 
     // if (viewMode === 'stitch_type') {
     //   buttons.push(

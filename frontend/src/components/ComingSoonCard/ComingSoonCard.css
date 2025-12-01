@@ -1,29 +1,6 @@
 /* src/components/ComingSoonCard/ComingSoonCard.css */
 
 .coming-soon-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
   margin: 2rem auto;
-  width: 80%;
   max-width: 400px;
-  background-color: #f0c987; /* Warm, yarn-like tan */
-  border-radius: 15px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-  border: 2px solid #d4a373;
-  text-align: center;
-}
-
-.coming-soon-card h2 {
-  font-size: 1.8rem;
-  color: #8b5e3c; /* Deep brown for knitting theme */
-  margin-bottom: 0.5rem;
-}
-
-.coming-soon-card p {
-  font-size: 1.2rem;
-  color: #6b4226; /* Darker brown for text */
-  font-family: "Courier New", Courier, monospace; /* Yarn-inspired font */
 }

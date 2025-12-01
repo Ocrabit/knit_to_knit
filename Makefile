@@ -14,6 +14,9 @@ rebuild:
 	docker-compose build --no-cache frontend-build
 	docker-compose up -d
 
+rebuild-frontend:
+	docker-compose up -d --build --force-recreate frontend-build
+
 logs:
 	docker-compose logs -f
 
