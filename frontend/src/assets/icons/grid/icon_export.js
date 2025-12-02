@@ -1,12 +1,16 @@
-import draw_icon from './draw.png';
-import line_style_icon from './line_style.png'
-import erase_icon from './erase.png';
-import color_icon from './color.png';
-import marker_icon from './marker.png';
-import pan_icon from './pan.png';
-import grid_icon from './grid.png';
-import reset_icon from './reset.png';
-import download_icon from './download.png';
+import draw_icon from './Draw.svg';
+import line_style_icon from './LineStyle.svg'
+import erase_icon from './Erase.svg';
+import color_icon from './Color.svg';
+import marker_icon from './Marker.svg';
+import pan_icon from './Pan.svg';
+import grid_icon from './Grid.svg';
+import reset_icon from './Reset.svg';
+import download_icon from './Download.svg';
+import undo_icon from './Undo.svg';
+import redo_icon from './Redo.svg';
+import trash_icon from './Trash.svg';
+import square_icon from './Square.svg';
 
 export {
     draw_icon,
@@ -18,4 +22,8 @@ export {
     grid_icon,
     reset_icon,
     download_icon,
+    undo_icon,
+    redo_icon,
+    trash_icon,
+    square_icon
 };

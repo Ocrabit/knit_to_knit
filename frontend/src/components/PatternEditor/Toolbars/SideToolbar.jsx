@@ -186,14 +186,14 @@ const SideToolbar = ({
     buttons.push(<ResetButton key="reset" />);
 
     buttons.push(
-      <button onClick={handleUndo} key="undo" className="side-toolbar-button undo-redo-button" title="Undo">
-        ⟲
+      <button onClick={handleUndo} key="undo" className="side-toolbar-button" title="Undo">
+        <img src={Icons.undo_icon} alt="Undo Icon" draggable="false"/>
       </button>
     );
 
     buttons.push(
-      <button onClick={handleRedo} key="redo" className="side-toolbar-button undo-redo-button" title="Redo">
-        ⟳
+      <button onClick={handleRedo} key="redo" className="side-toolbar-button" title="Redo">
+        <img src={Icons.redo_icon} alt="Redo Icon" draggable="false"/>
       </button>
     );
 

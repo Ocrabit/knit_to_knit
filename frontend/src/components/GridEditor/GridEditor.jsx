@@ -97,8 +97,11 @@ const GridEditor = () => {
   // Marker Var
   const [selectedMarking, setSelectedMarking] = useState('none');
 
+  // Grid Size Var
+  const [gridSize, setGridSize] = useState(grid_pixels);
+
   // Popup Vars
-  const [popupType, setPopupType] = useState(''); // Type of popup ('color', 'marker', 'grid', 'save')
+  const [popupType, setPopupType] = useState(''); // Type of popup ('color', 'marker', 'grid', 'save', 'gridSize', 'clearGrid')
 
   // Reference Vars
   const gridContainerRef = useRef(null); // Reference to grid container
@@ -245,6 +248,30 @@ const GridEditor = () => {
   // Dynamically calculate the container width and height based on grid configuration
   const { width: gridWidth, height: gridHeight } = calcContainerSize(rows, columns, grid_pixels, gap_size);
 
+  // CLEAR/EMPTY GRID
+  const clearGrid = () => {
+    const emptyGrid = Array.from({ length: rows * columns }, () => ({
+      color: '#ffffff',
+      marking: 'none',
+    }));
+    setGrid(emptyGrid);
+    saveGridToLocalStorage(emptyGrid);
+    closePopup();
+  };
+
+  // Handle grid size change
+  const handleGridSizeChange = (newSize) => {
+    const size = parseInt(newSize, 10);
+    if (size > 0 && size <= 100) {
+      setGridSize(size);
+      document.documentElement.style.setProperty('--square_var', `${size}px`);
+      localStorage.setItem('gridSize', size);
+      closePopup();
+    } else {
+      alert('Grid size must be between 1 and 100 pixels.');
+    }
+  };
+
   // SAVE GRID
   const saveGrid = () => {
     const fileName = prompt('Please enter the file name', 'grid.png'); // Prompt for file name
@@ -314,7 +341,13 @@ const GridEditor = () => {
     const savedCustomLineStyle = localStorage.getItem('customLineStyle');
     const savedRows = localStorage.getItem('rows')
     const savedColumns = localStorage.getItem('columns')
+    const savedGridSize = localStorage.getItem('gridSize');
 
+    if (savedGridSize) {
+      const size = parseInt(savedGridSize, 10);
+      setGridSize(size);
+      document.documentElement.style.setProperty('--square_var', `${size}px`);
+    }
     if (savedMarker) {
       setSelectedMarking(savedMarker); // Set the saved marker
     }
@@ -451,6 +484,12 @@ const GridEditor = () => {
           <button className="toolbox-button" onClick={() => openPopup('grid')}>
             <img src={Icons.grid_icon} alt="Grid Create Icon" draggable="false"/>
           </button>
+          <button className="toolbox-button" onClick={() => openPopup('gridSize')} title="Customize Grid Size">
+            <img src={Icons.square_icon} alt="Grid Size Icon" draggable="false"/>
+          </button>
+          <button className="toolbox-button" onClick={() => openPopup('trash')} title="Trash Grid">
+            <img src={Icons.trash_icon} alt="Trash Icon" draggable="false"/>
+          </button>
           <ResetButton/>
           <button className="toolbox-button" onClick={() => openPopup('save')}>
             <img src={Icons.download_icon} alt="Download Icon" draggable="false"/>
@@ -531,6 +570,31 @@ const GridEditor = () => {
           <h3>Save Grid</h3>
           <button onClick={saveGrid}>Save Grid</button>
           <button onClick={closePopup}>Close</button>
+        </div>
+      )}
+
+      {popupType === 'gridSize' && (
+        <div className="popup">
+          <h3>Customize Square Size (px)</h3>
+          <input
+            type="number"
+            placeholder="48"
+            value={gridSize}
+            onChange={(e) => setGridSize(e.target.value)}
+            min="1"
+            max="100"
+          />
+          <button onClick={() => handleGridSizeChange(gridSize)}>Apply</button>
+          <button onClick={closePopup}>Close</button>
+        </div>
+      )}
+
+      {popupType === 'trash' && (
+        <div className="popup">
+          <h3>Trash Grid</h3>
+          <p>Are you sure you want to trash the entire grid?</p>
+          <button onClick={clearGrid}>Trash</button>
+          <button onClick={closePopup}>Cancel</button>
         </div>
       )}
     </TransformWrapper>
